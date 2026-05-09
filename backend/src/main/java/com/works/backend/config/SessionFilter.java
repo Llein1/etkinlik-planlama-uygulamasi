@@ -29,7 +29,7 @@ public class SessionFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
         String urlPath = request.getRequestURI();
-        String[] freeUrls = {"/user", "/actuator", "/swagger-ui", "/v3/api-docs"};
+        String[] freeUrls = {"/user", "/actuator", "/swagger", "/v3/api-docs"};
 
         boolean isAuth = true;
         for (String freeUrl : freeUrls) {
@@ -105,4 +105,3 @@ public class SessionFilter implements Filter {
         return xfHeader.split(",")[0];
     }
 }
-

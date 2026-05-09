@@ -22,8 +22,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -42,9 +46,13 @@ public class EventService {
             Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
             return ResponseEntity.status(401).body(hm);
         }
+        ResponseEntity validation = validateEventDateTime(eventCreateRequestDto.getDate(), eventCreateRequestDto.getTime());
+        if (validation != null) {
+            return validation;
+        }
         Event event = model.map(eventCreateRequestDto, Event.class);
         event.setOwner(optionalUser.get());
-        event.setStatus(EventStatus.PAUSED);
+        event.setStatus(EventStatus.PUBLISHED);
         event = eventRepository.save(event);
         return ResponseEntity.ok().body(toEventResponse(event));
     }
@@ -55,6 +63,10 @@ public class EventService {
         if (optionalUser.isEmpty()) {
             Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
             return ResponseEntity.status(401).body(hm);
+        }
+        ResponseEntity validation = validateEventDateTime(eventUpdateRequestDto.getDate(), eventUpdateRequestDto.getTime());
+        if (validation != null) {
+            return validation;
         }
         Optional<Event> optionalEvent = eventRepository.findByIdAndOwner_Id(eventUpdateRequestDto.getId(), optionalUser.get().getId());
         if (optionalEvent.isPresent()) {
@@ -145,6 +157,28 @@ public class EventService {
                 .map(this::toEventResponse);
     }
 
+    @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
+    public void archiveExpiredEvents() {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        List<Event> expiredByDate = eventRepository.findByStatusInAndDateBefore(
+                List.of(EventStatus.PUBLISHED, EventStatus.PAUSED),
+                today
+        );
+        List<Event> expiredByTime = eventRepository.findByStatusInAndDateEqualsAndTimeBefore(
+                List.of(EventStatus.PUBLISHED, EventStatus.PAUSED),
+                today,
+                now
+        );
+        List<Event> expiredEvents = Stream.concat(expiredByDate.stream(), expiredByTime.stream())
+                .distinct()
+                .toList();
+        if (!expiredEvents.isEmpty()) {
+            expiredEvents.forEach(event -> event.setStatus(EventStatus.ARCHIVED));
+            eventRepository.saveAll(expiredEvents);
+        }
+    }
+
     private ResponseEntity updateStatus(Long id, EventStatus status, String message) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
@@ -154,6 +188,14 @@ public class EventService {
         Optional<Event> optionalEvent = eventRepository.findByIdAndOwner_Id(id, optionalUser.get().getId());
         if (optionalEvent.isPresent()) {
             Event event = optionalEvent.get();
+            if (event.getStatus() == EventStatus.ARCHIVED && status != EventStatus.ARCHIVED) {
+                Map<String, Object> hm = Map.of("success", false, "message", "Archived events cannot be updated.");
+                return ResponseEntity.badRequest().body(hm);
+            }
+            if (isEventExpired(event) && (status == EventStatus.PUBLISHED || status == EventStatus.PAUSED)) {
+                Map<String, Object> hm = Map.of("success", false, "message", "Expired events cannot be published or paused.");
+                return ResponseEntity.badRequest().body(hm);
+            }
             event.setStatus(status);
             eventRepository.save(event);
             Map<String, Object> hm = Map.of("success", true, "message", message);
@@ -176,6 +218,29 @@ public class EventService {
         responseDto.setOwnerId(event.getOwner().getId());
         responseDto.setOwnerName(event.getOwner().getName());
         return responseDto;
+    }
+
+    private boolean isEventExpired(Event event) {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        if (event.getDate() == null || event.getTime() == null) {
+            return false;
+        }
+        return event.getDate().isBefore(today)
+                || (event.getDate().isEqual(today) && event.getTime().isBefore(now));
+    }
+
+    private ResponseEntity validateEventDateTime(LocalDate date, LocalTime time) {
+        if (date == null || time == null) {
+            return null;
+        }
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        if (date.isBefore(today) || (date.isEqual(today) && !time.isAfter(now))) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Event date/time must be in the future.");
+            return ResponseEntity.badRequest().body(hm);
+        }
+        return null;
     }
 
     public Long getSessionUserId() {
