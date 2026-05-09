@@ -1,0 +1,101 @@
+package com.works.backend.service;
+
+import com.works.backend.dto.EventResponseDto;
+import com.works.backend.dto.JoinEventRequestDto;
+import com.works.backend.dto.ParticipantResponseDto;
+import com.works.backend.dto.UserResponseDto;
+import com.works.backend.entity.Event;
+import com.works.backend.entity.EventParticipant;
+import com.works.backend.entity.User;
+import com.works.backend.repository.EventParticipantRepository;
+import com.works.backend.repository.EventRepository;
+import com.works.backend.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class EventParticipantService {
+
+    final EventParticipantRepository eventParticipantRepository;
+    final EventRepository eventRepository;
+    final UserRepository userRepository;
+    final HttpServletRequest request;
+    final ModelMapper model;
+
+    public ResponseEntity join(JoinEventRequestDto joinEventRequestDto) {
+        Optional<User> optionalUser = getSessionUser();
+        if (optionalUser.isEmpty()) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            return ResponseEntity.status(401).body(hm);
+        }
+        Optional<Event> optionalEvent = eventRepository.findById(joinEventRequestDto.getEventId());
+        if (optionalEvent.isEmpty()) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+            return ResponseEntity.status(404).body(hm);
+        }
+        boolean isExists = eventParticipantRepository.existsByEvent_IdAndUser_Id(
+                joinEventRequestDto.getEventId(),
+                optionalUser.get().getId()
+        );
+        if (isExists) {
+            Map<String, Object> hm = Map.of("success", false, "message", "You already joined this event.");
+            return ResponseEntity.badRequest().body(hm);
+        }
+        EventParticipant eventParticipant = new EventParticipant();
+        eventParticipant.setEvent(optionalEvent.get());
+        eventParticipant.setUser(optionalUser.get());
+        eventParticipantRepository.save(eventParticipant);
+        Map<String, Object> hm = Map.of("success", true, "message", "Joined successfully.");
+        return ResponseEntity.ok().body(hm);
+    }
+
+    public ResponseEntity listParticipants(Long eventId) {
+        List<EventParticipant> participants = eventParticipantRepository.findByEvent_Id(eventId);
+        List<ParticipantResponseDto> responseDtos = participants.stream()
+                .map(participant -> {
+                    ParticipantResponseDto dto = model.map(participant.getUser(), ParticipantResponseDto.class);
+                    dto.setUserId(participant.getUser().getId());
+                    return dto;
+                })
+                .toList();
+        return ResponseEntity.ok().body(responseDtos);
+    }
+
+    public ResponseEntity listMyParticipations() {
+        Optional<User> optionalUser = getSessionUser();
+        if (optionalUser.isEmpty()) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            return ResponseEntity.status(401).body(hm);
+        }
+        List<EventParticipant> participants = eventParticipantRepository.findByUser_Id(optionalUser.get().getId());
+        List<EventResponseDto> responseDtos = participants.stream()
+                .map(EventParticipant::getEvent)
+                .map(this::toEventResponse)
+                .toList();
+        return ResponseEntity.ok().body(responseDtos);
+    }
+
+    private Optional<User> getSessionUser() {
+        Object sessionUser = request.getSession().getAttribute("user");
+        if (sessionUser instanceof UserResponseDto userResponseDto) {
+            return userRepository.findById(userResponseDto.getId());
+        }
+        return Optional.empty();
+    }
+
+    private EventResponseDto toEventResponse(Event event) {
+        EventResponseDto responseDto = model.map(event, EventResponseDto.class);
+        responseDto.setOwnerId(event.getOwner().getId());
+        responseDto.setOwnerName(event.getOwner().getName());
+        return responseDto;
+    }
+}
+
