@@ -14,6 +14,8 @@ import com.works.backend.util.EventStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,7 @@ public class EventService {
     final HttpServletRequest request;
     final ModelMapper model;
 
+    @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity create(EventCreateRequestDto eventCreateRequestDto) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
@@ -46,6 +49,7 @@ public class EventService {
         return ResponseEntity.ok().body(toEventResponse(event));
     }
 
+    @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity update(EventUpdateRequestDto eventUpdateRequestDto) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
@@ -69,6 +73,7 @@ public class EventService {
         return ResponseEntity.status(404).body(hm);
     }
 
+    @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity deleteOne(Long id) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
@@ -85,14 +90,17 @@ public class EventService {
         return ResponseEntity.status(404).body(hm);
     }
 
+    @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity publish(Long id) {
         return updateStatus(id, EventStatus.PUBLISHED, "Event published successfully.");
     }
 
+    @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity pause(Long id) {
         return updateStatus(id, EventStatus.PAUSED, "Event paused successfully.");
     }
 
+    @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity archive(Long id) {
         return updateStatus(id, EventStatus.ARCHIVED, "Event archived successfully.");
     }
@@ -111,12 +119,22 @@ public class EventService {
         return ResponseEntity.ok().body(responseDto);
     }
 
+    @Cacheable(cacheNames = "eventListCache", key = "#page")
     public Page<EventResponseDto> listPublished(int page) {
         Pageable pageable = Pageable.ofSize(10).withPage(page);
         return eventRepository.findByStatus(EventStatus.PUBLISHED, pageable)
                 .map(this::toEventResponse);
     }
 
+    @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page")
+    public Page<EventResponseDto> search(String q, int page) {
+        Pageable pageable = PageRequest.of(page, 10);
+        return eventRepository.findByTitleContainsOrDescriptionContainsOrLocationContainsOrCategoryContainsAllIgnoreCase(
+                        q, q, q, q, pageable)
+                .map(this::toEventResponse);
+    }
+
+    @Cacheable(cacheNames = "eventOwnerListCache", key = "#page + '-' + #root.target.getSessionUserId()")
     public Page<EventResponseDto> listByOwner(int page) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
@@ -124,13 +142,6 @@ public class EventService {
         }
         Pageable pageable = Pageable.ofSize(10).withPage(page);
         return eventRepository.findByOwner_Id(optionalUser.get().getId(), pageable)
-                .map(this::toEventResponse);
-    }
-
-    public Page<EventResponseDto> search(String q, int page) {
-        Pageable pageable = PageRequest.of(page, 10);
-        return eventRepository.findByTitleContainsOrDescriptionContainsOrLocationContainsOrCategoryContainsAllIgnoreCase(
-                        q, q, q, q, pageable)
                 .map(this::toEventResponse);
     }
 
@@ -166,5 +177,8 @@ public class EventService {
         responseDto.setOwnerName(event.getOwner().getName());
         return responseDto;
     }
-}
 
+    public Long getSessionUserId() {
+        return getSessionUser().map(User::getId).orElse(0L);
+    }
+}
