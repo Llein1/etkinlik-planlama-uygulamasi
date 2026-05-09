@@ -1,4 +1,4 @@
-package com.works.backend.entity;
+package com.works.backend.util;
 
 public enum EventStatus {
     PUBLISHED,

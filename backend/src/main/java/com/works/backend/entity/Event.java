@@ -1,5 +1,6 @@
 package com.works.backend.entity;
 
+import com.works.backend.util.EventStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
