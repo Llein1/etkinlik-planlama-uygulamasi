@@ -1,0 +1,55 @@
+<section class="login-page">
+	<div class="container">
+		<div class="login-wrap">
+				<div class="login-brand">
+					<img src="images/EUEtkinlik-removebg-preview.png" alt="EUEtkinlik" class="login-brand__logo">
+				</div>
+
+			<div class="login-card">
+				<h1 class="login-title">Giriş Yap</h1>
+				<p class="login-subtitle">Etkinliklerini planlamak için hesabına giriş yap.</p>
+
+				<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+					<div class="form-field">
+						<label for="email">E-posta</label>
+						<input
+							id="email"
+							type="email"
+							formControlName="email"
+							placeholder="ornek@mail.com"
+							[class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+							autocomplete="email"
+							required>
+						<p class="form-error" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+							Geçerli bir e-posta girin.
+						</p>
+					</div>
+
+					<div class="form-field">
+						<label for="password">Şifre</label>
+						<input
+							id="password"
+							type="password"
+							formControlName="password"
+							placeholder="Şifren"
+							[class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+							autocomplete="current-password"
+							required>
+						<p class="form-error" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+							Şifre en az 6 karakter olmalı.
+						</p>
+					</div>
+
+					<button type="submit" class="btn primary large login-submit" [disabled]="loginForm.invalid">
+						Giriş Yap
+					</button>
+				</form>
+
+				<div class="login-footer">
+					<span>Hesabın yok mu?</span>
+					<a class="link primary" routerLink="/register">Kaydol</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

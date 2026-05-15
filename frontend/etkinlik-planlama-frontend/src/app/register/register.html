@@ -1,0 +1,70 @@
+<section class="login-page">
+	<div class="container">
+		<div class="login-wrap">
+			<div class="login-brand">
+				<img src="images/EUEtkinlik-removebg-preview.png" alt="EUEtkinlik" class="login-brand__logo">
+			</div>
+
+			<div class="login-card">
+				<h1 class="login-title">Kaydol</h1>
+				<p class="login-subtitle">Etkinliklerini planlamak için hemen hesap oluştur.</p>
+
+				<form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+					<div class="form-field">
+						<label for="name">Ad Soyad</label>
+						<input
+							id="name"
+							type="text"
+							formControlName="name"
+							placeholder="Adın Soyadın"
+							[class.is-invalid]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+							autocomplete="name"
+							required>
+						<p class="form-error" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+							En az 2 karakter girin.
+						</p>
+					</div>
+
+					<div class="form-field">
+						<label for="email">E-posta</label>
+						<input
+							id="email"
+							type="email"
+							formControlName="email"
+							placeholder="ornek@mail.com"
+							[class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+							autocomplete="email"
+							required>
+						<p class="form-error" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+							Geçerli bir e-posta girin.
+						</p>
+					</div>
+
+					<div class="form-field">
+						<label for="password">Şifre</label>
+						<input
+							id="password"
+							type="password"
+							formControlName="password"
+							placeholder="Şifren"
+							[class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+							autocomplete="new-password"
+							required>
+						<p class="form-error" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+							Şifre en az 6 karakter olmalı.
+						</p>
+					</div>
+
+					<button type="submit" class="btn primary large login-submit" [disabled]="registerForm.invalid">
+						Kaydol
+					</button>
+				</form>
+
+				<div class="login-footer">
+					<span>Hesabın var mı?</span>
+					<a class="link primary" routerLink="">Giriş yap</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

@@ -69,5 +69,8 @@ public class EventRestController {
     ) {
         return eventService.search(q, page);
     }
+
+    @GetMapping("control")
+    public void control() {}
 }
 

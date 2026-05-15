@@ -1,0 +1,135 @@
+.login-page {
+	min-height: 100vh;
+	min-height: 100svh;
+	display: flex;
+	align-items: center;
+	padding: 6rem 0;
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
+	background-color: #faebe8;
+	background-image: radial-gradient(120% 120% at 10% 10%, #f5d2d0 0%, #ffffff 45%, #f5d0d0 100%);
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center;
+}
+
+.login-wrap {
+	display: grid;
+	gap: 2.4rem;
+	max-width: 520px;
+	margin: 0 auto;
+}
+
+.login-brand {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.8rem;
+}
+
+.login-brand__logo {
+	width: auto;
+	height: 140px;
+	object-fit: contain;
+}
+
+.login-brand__name {
+	font-family: Poppins Bold, Verdana, sans-serif;
+	font-size: 2.4rem;
+	color: #1e1f1f;
+}
+
+.login-card {
+	background-color: #fff;
+	border-radius: 28px;
+	padding: 3.2rem;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+	border: 1px solid #f0f1f2;
+}
+
+.login-title {
+	margin: 0 0 0.8rem;
+	font-family: Poppins Bold, Verdana, sans-serif;
+	font-size: 2.8rem;
+	color: #1e1f1f;
+	text-align: center;
+}
+
+.login-subtitle {
+	margin: 0 0 2.4rem;
+	font-size: 1.5rem;
+	color: #777879;
+	text-align: center;
+}
+
+.form-field {
+	display: grid;
+	gap: 0.8rem;
+	margin-bottom: 1.6rem;
+}
+
+.form-field label {
+	font-family: Poppins Medium, Verdana, sans-serif;
+	font-size: 1.4rem;
+	color: #1e1f1f;
+}
+
+.form-field input {
+	height: 5.2rem;
+	border-radius: 18px;
+	border: 1px solid #d6d7d7;
+	padding: 0 1.6rem;
+	font-size: 1.6rem;
+	font-family: Poppins Regular, Verdana, sans-serif;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.form-field input:focus {
+	outline: none;
+	border-color: #dc291e;
+	box-shadow: 0 0 0 3px rgba(220, 41, 30, 0.15);
+}
+
+.form-field input.is-invalid {
+	border-color: #dc291e;
+	background-color: #fbe9e8;
+}
+
+.form-error {
+	margin: 0;
+	font-size: 1.3rem;
+	color: #dc291e;
+}
+
+.login-submit {
+	width: 100%;
+	margin-top: 0.8rem;
+}
+
+.login-footer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 0.6rem;
+	margin-top: 2.4rem;
+	font-size: 1.4rem;
+	color: #777879;
+}
+
+.login-footer .link.primary {
+	font-family: Poppins Medium, Verdana, sans-serif;
+}
+
+@media (max-width: 576px) {
+	.login-card {
+		padding: 2.4rem;
+		border-radius: 22px;
+	}
+
+	.login-title {
+		font-size: 2.4rem;
+	}
+}
