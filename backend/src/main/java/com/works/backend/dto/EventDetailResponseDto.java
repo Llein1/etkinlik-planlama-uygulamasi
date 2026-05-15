@@ -19,5 +19,5 @@ public class EventDetailResponseDto {
     Long ownerId;
     String ownerName;
     long participantCount;
+    Boolean isFavorite;
 }
-

@@ -3,7 +3,9 @@ package com.works.backend.config;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
+@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @Configuration
 public class AppConfig {
 
@@ -12,4 +14,3 @@ public class AppConfig {
         return new ModelMapper();
     }
 }
-

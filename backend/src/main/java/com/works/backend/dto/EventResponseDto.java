@@ -17,4 +17,5 @@ public class EventResponseDto {
     EventStatus status;
     Long ownerId;
     String ownerName;
+    Boolean isFavorite;
 }

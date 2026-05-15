@@ -10,6 +10,7 @@ import com.works.backend.entity.User;
 import com.works.backend.repository.EventParticipantRepository;
 import com.works.backend.repository.EventRepository;
 import com.works.backend.repository.UserRepository;
+import com.works.backend.repository.EventFavoriteRepository;
 import com.works.backend.util.EventStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class EventService {
     final EventRepository eventRepository;
     final EventParticipantRepository eventParticipantRepository;
     final UserRepository userRepository;
+    final EventFavoriteRepository eventFavoriteRepository;
     final HttpServletRequest request;
     final ModelMapper model;
 
@@ -54,7 +58,7 @@ public class EventService {
         event.setOwner(optionalUser.get());
         event.setStatus(EventStatus.PUBLISHED);
         event = eventRepository.save(event);
-        return ResponseEntity.ok().body(toEventResponse(event));
+        return ResponseEntity.ok().body(toEventResponse(event, Set.of()));
     }
 
     @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
@@ -128,22 +132,25 @@ public class EventService {
         responseDto.setOwnerId(event.getOwner().getId());
         responseDto.setOwnerName(event.getOwner().getName());
         responseDto.setParticipantCount(eventParticipantRepository.countByEvent_Id(event.getId()));
+        responseDto.setIsFavorite(isFavoriteForSessionUser(event.getId()));
         return ResponseEntity.ok().body(responseDto);
     }
 
-    @Cacheable(cacheNames = "eventListCache", key = "#page")
+    @Cacheable(cacheNames = "eventListCache", key = "#page + '-' + #root.target.getSessionUserId()")
     public Page<EventResponseDto> listPublished(int page) {
         Pageable pageable = Pageable.ofSize(10).withPage(page);
+        Set<Long> favoriteEventIds = getFavoriteEventIds(getSessionUser());
         return eventRepository.findByStatus(EventStatus.PUBLISHED, pageable)
-                .map(this::toEventResponse);
+                .map(event -> toEventResponse(event, favoriteEventIds));
     }
 
-    @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page")
+    @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page + '-' + #root.target.getSessionUserId()")
     public Page<EventResponseDto> search(String q, int page) {
         Pageable pageable = PageRequest.of(page, 10);
+        Set<Long> favoriteEventIds = getFavoriteEventIds(getSessionUser());
         return eventRepository.findByTitleContainsOrDescriptionContainsOrLocationContainsOrCategoryContainsAllIgnoreCase(
                         q, q, q, q, pageable)
-                .map(this::toEventResponse);
+                .map(event -> toEventResponse(event, favoriteEventIds));
     }
 
     @Cacheable(cacheNames = "eventOwnerListCache", key = "#page + '-' + #root.target.getSessionUserId()")
@@ -153,8 +160,9 @@ public class EventService {
             return Page.empty();
         }
         Pageable pageable = Pageable.ofSize(10).withPage(page);
+        Set<Long> favoriteEventIds = getFavoriteEventIds(optionalUser);
         return eventRepository.findByOwner_Id(optionalUser.get().getId(), pageable)
-                .map(this::toEventResponse);
+                .map(event -> toEventResponse(event, favoriteEventIds));
     }
 
     @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
@@ -213,11 +221,28 @@ public class EventService {
         return Optional.empty();
     }
 
-    private EventResponseDto toEventResponse(Event event) {
+    private EventResponseDto toEventResponse(Event event, Set<Long> favoriteEventIds) {
         EventResponseDto responseDto = model.map(event, EventResponseDto.class);
         responseDto.setOwnerId(event.getOwner().getId());
         responseDto.setOwnerName(event.getOwner().getName());
+        responseDto.setIsFavorite(favoriteEventIds.contains(event.getId()));
         return responseDto;
+    }
+
+    private Set<Long> getFavoriteEventIds(Optional<User> optionalUser) {
+        if (optionalUser.isEmpty()) {
+            return Set.of();
+        }
+        List<Long> eventIds = eventFavoriteRepository.findEventIdsByUserId(optionalUser.get().getId());
+        return new HashSet<>(eventIds);
+    }
+
+    private boolean isFavoriteForSessionUser(Long eventId) {
+        Optional<User> optionalUser = getSessionUser();
+        if (optionalUser.isEmpty()) {
+            return false;
+        }
+        return eventFavoriteRepository.existsByEvent_IdAndUser_Id(eventId, optionalUser.get().getId());
     }
 
     private boolean isEventExpired(Event event) {

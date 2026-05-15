@@ -10,6 +10,7 @@ import com.works.backend.entity.User;
 import com.works.backend.repository.EventParticipantRepository;
 import com.works.backend.repository.EventRepository;
 import com.works.backend.repository.UserRepository;
+import com.works.backend.repository.EventFavoriteRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class EventParticipantService {
     final EventParticipantRepository eventParticipantRepository;
     final EventRepository eventRepository;
     final UserRepository userRepository;
+    final EventFavoriteRepository eventFavoriteRepository;
     final HttpServletRequest request;
     final ModelMapper model;
 
@@ -75,10 +79,11 @@ public class EventParticipantService {
             Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
             return ResponseEntity.status(401).body(hm);
         }
+        Set<Long> favoriteEventIds = getFavoriteEventIds(optionalUser.get().getId());
         List<EventParticipant> participants = eventParticipantRepository.findByUser_Id(optionalUser.get().getId());
         List<EventResponseDto> responseDtos = participants.stream()
                 .map(EventParticipant::getEvent)
-                .map(this::toEventResponse)
+                .map(event -> toEventResponse(event, favoriteEventIds))
                 .toList();
         return ResponseEntity.ok().body(responseDtos);
     }
@@ -91,11 +96,16 @@ public class EventParticipantService {
         return Optional.empty();
     }
 
-    private EventResponseDto toEventResponse(Event event) {
+    private EventResponseDto toEventResponse(Event event, Set<Long> favoriteEventIds) {
         EventResponseDto responseDto = model.map(event, EventResponseDto.class);
         responseDto.setOwnerId(event.getOwner().getId());
         responseDto.setOwnerName(event.getOwner().getName());
+        responseDto.setIsFavorite(favoriteEventIds.contains(event.getId()));
         return responseDto;
     }
-}
 
+    private Set<Long> getFavoriteEventIds(Long userId) {
+        List<Long> eventIds = eventFavoriteRepository.findEventIdsByUserId(userId);
+        return new HashSet<>(eventIds);
+    }
+}
