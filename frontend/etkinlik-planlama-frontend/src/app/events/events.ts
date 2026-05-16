@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { IEvents, Event } from '../../models/IEvents';
+import { apiUrl } from '../shared/api-url';
 
 @Component({
   selector: 'app-events',
@@ -18,7 +19,7 @@ export class Events {
   loading = signal<boolean>(false);
 
   constructor() {
-    console.log('Products component initialized');
+    console.log('Events component initialized');
   }
 
   ngOnInit() {
@@ -28,7 +29,7 @@ export class Events {
   fetchEvents(page: number = 0) {
     this.activePage.set(page);
     this.loading.set(true);
-    this.http.get<IEvents>(`http://localhost:8090/event/list?page=${page}`, { withCredentials: true }).subscribe({
+    this.http.get<IEvents>(apiUrl(`/event/list?page=${page}`), { withCredentials: true }).subscribe({
       next: (response) => {
         this.eventArray.set(response.content);
         const eventsArray = Array.from({ length: response.page.totalPages }, (_, i) => i);

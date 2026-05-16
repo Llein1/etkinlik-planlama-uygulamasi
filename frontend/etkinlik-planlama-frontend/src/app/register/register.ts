@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { apiUrl } from '../shared/api-url';
 
 @Component({
   selector: 'app-register',
@@ -12,6 +13,7 @@ import { RouterModule } from '@angular/router';
 })
 export class Register {
   private http = inject(HttpClient);
+  private router = inject(Router);
   registerForm: FormGroup;
 
   constructor(private formBuilder: FormBuilder) {
@@ -26,9 +28,9 @@ export class Register {
     if (this.registerForm.valid) {
       // Kayıt işlemi burada yapılacak
       const registerData = this.registerForm.value;
-      this.http.post('http://localhost:8090/user/register', registerData, { withCredentials: true}).subscribe({
+      this.http.post(apiUrl('/user/register'), registerData, { withCredentials: true }).subscribe({
         next: (response) => {
-          window.location.href = '';
+          this.router.navigate(['/']);
         },
         error: (error) => {
           alert('Kayıt başarısız: ' + (error.error?.message || 'Bilinmeyen hata'));

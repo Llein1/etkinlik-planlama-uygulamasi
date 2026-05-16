@@ -1,0 +1,108 @@
+<section class="event-create container py-5">
+	<div class="row justify-content-center">
+		<div class="col-12 col-lg-8">
+			<div class="d-flex align-items-center justify-content-between mb-4">
+				<div>
+					<p class="event-create__eyebrow text-uppercase fw-semibold small mb-2">Yeni Etkinlik</p>
+					<h1 class="h3 fw-bold mb-0">Etkinlik Oluştur</h1>
+				</div>
+				<a class="btn btn-outline-secondary" routerLink="/events">Etkinliklere Dön</a>
+			</div>
+
+			<div class="card border-0 shadow-sm">
+				<div class="card-body p-4 p-lg-5">
+					<form [formGroup]="eventForm" (ngSubmit)="onSubmit()" novalidate>
+						<div class="row g-4">
+							<div class="col-12">
+								<label class="form-label fw-semibold" for="title">Etkinlik Adı</label>
+								<input
+									id="title"
+									type="text"
+									class="form-control"
+									placeholder="Örn. Elektronik Müzik Gecesi"
+									formControlName="title"
+								/>
+								<div class="text-danger small mt-2" *ngIf="eventForm.get('title')?.touched && eventForm.get('title')?.invalid">
+									Etkinlik adı en az 3 karakter olmalıdır.
+								</div>
+							</div>
+
+							<div class="col-12 col-md-6">
+								<label class="form-label fw-semibold" for="date">Tarih</label>
+								<input id="date" type="date" class="form-control" [min]="today" formControlName="date" />
+								<div class="text-danger small mt-2" *ngIf="eventForm.get('date')?.touched && eventForm.get('date')?.invalid">
+									Tarih seçimi zorunludur.
+								</div>
+							</div>
+
+							<div class="col-12 col-md-6">
+								<label class="form-label fw-semibold" for="time">Saat</label>
+								<input id="time" type="time" class="form-control" formControlName="time" />
+								<div class="text-danger small mt-2" *ngIf="eventForm.get('time')?.touched && eventForm.get('time')?.invalid">
+									Saat seçimi zorunludur.
+								</div>
+							</div>
+
+							<div class="col-12">
+								<label class="form-label fw-semibold" for="location">Yer</label>
+								<input
+									id="location"
+									type="text"
+									class="form-control"
+									placeholder="Örn. Kültürpark Açık Hava Sahnesi"
+									formControlName="location"
+								/>
+								<div
+									class="text-danger small mt-2"
+									*ngIf="eventForm.get('location')?.touched && eventForm.get('location')?.invalid"
+								>
+									Yer bilgisi en az 2 karakter olmalıdır.
+								</div>
+							</div>
+
+							<div class="col-12 col-md-6">
+								<label class="form-label fw-semibold" for="category">Kategori</label>
+								<select id="category" class="form-select" formControlName="category">
+									<option value="" disabled>Seçiniz</option>
+									<option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+								</select>
+								<div
+									class="text-danger small mt-2"
+									*ngIf="eventForm.get('category')?.touched && eventForm.get('category')?.invalid"
+								>
+									Kategori seçimi zorunludur.
+								</div>
+							</div>
+
+							<div class="col-12">
+								<label class="form-label fw-semibold" for="description">Açıklama</label>
+								<textarea
+									id="description"
+									rows="5"
+									class="form-control"
+									placeholder="Etkinlik detaylarını, programı veya özel notları ekleyin"
+									formControlName="description"
+								></textarea>
+								<div
+									class="text-danger small mt-2"
+									*ngIf="eventForm.get('description')?.touched && eventForm.get('description')?.invalid"
+								>
+									Açıklama en az 10 karakter olmalıdır.
+								</div>
+							</div>
+						</div>
+
+						<div class="d-flex flex-column flex-sm-row gap-3 mt-4">
+							<button type="submit" class="btn btn-primary px-4" [disabled]="submitting">
+								{{ submitting ? 'Kaydediliyor...' : 'Etkinliği Oluştur' }}
+							</button>
+							<button type="button" class="btn btn-outline-secondary" (click)="resetForm()" [disabled]="submitting">
+								Formu Temizle
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>

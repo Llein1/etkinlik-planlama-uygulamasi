@@ -26,8 +26,8 @@ public class UserRestController {
     }
 
     @GetMapping("logout")
-    public ResponseEntity logout() {
-        return userService.logout();
+    public void logout() {
+        userService.logout();
     }
 }
 

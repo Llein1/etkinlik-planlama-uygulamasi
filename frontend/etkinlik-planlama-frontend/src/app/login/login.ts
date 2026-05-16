@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { apiUrl } from '../shared/api-url';
 
 @Component({
   selector: 'app-login',
@@ -12,6 +13,7 @@ import { RouterModule } from '@angular/router';
 })
 export class Login {
   private http = inject(HttpClient);
+  private router = inject(Router);
   loginForm: FormGroup;
 
   constructor(private formBuilder: FormBuilder) {
@@ -24,13 +26,13 @@ export class Login {
   onSubmit() {
     if (this.loginForm.valid) {
       const loginData = this.loginForm.value;
-      this.http.post('http://localhost:8090/user/login', loginData, { withCredentials: true }).subscribe({
+      this.http.post(apiUrl('/user/login'), loginData, { withCredentials: true }).subscribe({
         next: (response) => {
           const {id, name, email} = response as any;
           localStorage.setItem('id', id);
           localStorage.setItem('name', name);
           localStorage.setItem('email', email);
-          window.location.href = '/events';
+          this.router.navigate(['/events']);
         },
         error: (error) => {
           alert('Giriş başarısız: ' + (error.error?.message || 'Bilinmeyen hata'));

@@ -1,0 +1,14 @@
+@if (eventItem() !== null) {
+  <div class="event-detail-container">
+    <h2>{{ eventItem()?.title }}</h2>
+    <p><strong>Date:</strong> {{ eventItem()?.date }}</p>
+    <p><strong>Description:</strong> {{ eventItem()?.description }}</p>
+  </div>
+}
+@else {
+  <div class="text-center" style="position: absolute;">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+}
