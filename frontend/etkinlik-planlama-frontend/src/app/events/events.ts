@@ -19,7 +19,6 @@ export class Events implements AfterViewInit, OnDestroy {
 
   private http = inject(HttpClient);
   private _swiper: any;
-  private _wheelHandler?: (e: WheelEvent) => void;
   eventArray = signal<Event[]>([]);
   featuredEvents = signal<Event[]>([]);
   selectedFeaturedIndex = signal<number>(0);
@@ -27,7 +26,6 @@ export class Events implements AfterViewInit, OnDestroy {
   pages = signal<number[]>([]);
   activePage = signal<number>(0);
   loading = signal<boolean>(false);
-  private _featuredInitialized = false;
 
   constructor() {
     console.log('Events component initialized');
@@ -39,27 +37,11 @@ export class Events implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.initHeroSwiper();
-    // Prevent horizontal scrolling via shift+wheel or wheel with deltaX
-    this._wheelHandler = (e: WheelEvent) => {
-      try {
-        const isHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) || Math.abs(e.deltaX) > 0;
-        if (e.shiftKey || isHorizontal) {
-          e.preventDefault();
-        }
-      } catch (err) {
-        // swallow
-      }
-    };
-    document.addEventListener('wheel', this._wheelHandler as EventListener, { passive: false });
   }
 
   ngOnDestroy(): void {
     if ((this as any)._swiper && typeof (this as any)._swiper.destroy === 'function') {
       (this as any)._swiper.destroy(true, true);
-    }
-    if (this._wheelHandler) {
-      document.removeEventListener('wheel', this._wheelHandler as EventListener);
-      this._wheelHandler = undefined;
     }
   }
 
@@ -69,13 +51,15 @@ export class Events implements AfterViewInit, OnDestroy {
     this.http.get<IEvents>(apiUrl(`/event/list?page=${page}`), { withCredentials: true }).subscribe({
       next: (response) => {
         this.eventArray.set(response.content);
-        if (!this._featuredInitialized) {
-          const featuredEvents = this.pickRandom(response.content, 4);
-          this.featuredEvents.set(featuredEvents);
-          this.selectedFeaturedEvent.set(featuredEvents[0] ?? null);
+
+        // İlk sayfa yüklendiğinde ve henüz vitrin seçilmemişse rastgele 4 etkinlik seç
+        if (page === 0 && this.featuredEvents().length === 0) {
+          const randomFeatured = this.getRandomEvents(response.content, 4);
+          this.featuredEvents.set(randomFeatured);
+          this.selectedFeaturedEvent.set(randomFeatured[0] ?? null);
           this.selectedFeaturedIndex.set(0);
-          this._featuredInitialized = true;
         }
+
         const eventsArray = Array.from({ length: response.page.totalPages }, (_, i) => i);
         this.pages.set(eventsArray);
         this.loading.set(false);
@@ -87,18 +71,6 @@ export class Events implements AfterViewInit, OnDestroy {
         this.loading.set(false);
       }
     });
-  }
-
-  private pickRandom<T>(arr: T[], count: number): T[] {
-    const copy = arr.slice();
-    // Fisher-Yates shuffle (partial)
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = copy[i];
-      copy[i] = copy[j];
-      copy[j] = tmp;
-    }
-    return copy.slice(0, Math.min(count, copy.length));
   }
 
   selectFeaturedSlide(index: number) {
@@ -160,6 +132,11 @@ export class Events implements AfterViewInit, OnDestroy {
     return `events-hero-slide--theme-${index % 4}`;
   }
 
+  private getRandomEvents(events: Event[], count: number): Event[] {
+    const shuffled = [...events].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(count, events.length));
+  }
+
   private initHeroSwiper(): void {
     try {
       const SwiperCtor = (window as any).Swiper || (globalThis as any).Swiper || Swiper;
@@ -175,7 +152,7 @@ export class Events implements AfterViewInit, OnDestroy {
         effect: 'coverflow',
         centeredSlides: true,
         slidesPerView: 'auto',
-        spaceBetween: 24,
+        spaceBetween: 40,
         speed: 800,
         watchOverflow: true,
         loop: false,

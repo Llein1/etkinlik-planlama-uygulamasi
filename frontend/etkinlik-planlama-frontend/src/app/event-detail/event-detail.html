@@ -1,15 +1,185 @@
-@if (eventItem() !== null) {
-  <div class="event-detail-container">
-    <h2>{{ eventItem()?.title }}</h2>
-    <p><strong>Tarih:</strong> {{ eventItem()?.date | trDate }}</p>
-    <p><strong>Saat:</strong> {{ eventItem()?.time | trTime }}</p>
-    <p><strong>Açıklama:</strong> {{ eventItem()?.description }}</p>
-  </div>
-}
-@else {
-  <div class="text-center" style="position: absolute;">
-    <div class="spinner-border" role="status">
-      <span class="visually-hidden">Loading...</span>
+<section class="event-detail-page container py-4 py-lg-5">
+  @if (eventItem(); as event) {
+    <div class="event-detail-hero mb-4 mb-lg-5">
+      <div class="event-detail-hero__copy">
+        <div class="event-detail-hero__chips d-flex flex-wrap gap-2 mb-3">
+          <span class="event-detail-chip">{{ event.category }}</span>
+          <span class="event-detail-chip event-detail-chip--status event-detail-chip--{{ getStatusVariant(event.status) }}">{{ getStatusLabel(event.status) }}</span>
+        </div>
+
+        <h1 class="event-detail-hero__title mb-3">{{ event.title }}</h1>
+
+        <div class="event-detail-hero__meta d-flex flex-wrap gap-3 mb-4">
+          <div class="event-detail-meta-card">
+            <span class="event-detail-meta-card__label">Tarih</span>
+            <strong class="event-detail-meta-card__value">{{ event.date | trDate }}</strong>
+          </div>
+          <div class="event-detail-meta-card">
+            <span class="event-detail-meta-card__label">Saat</span>
+            <strong class="event-detail-meta-card__value">{{ event.time | trTime }}</strong>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-3">
+          <app-favorite
+            [eventId]="event.id"
+            [isFavorite]="event.isFavorite"
+            (toggled)="onFavoriteToggled($event)"
+          ></app-favorite>
+        </div>
+      </div>
+      <a class="btn btn-outline-secondary icon-link icon-link-hover app-icon-link-red" routerLink="/events">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        Etkinliklere Dön
+      </a>
+
+      <div class="event-detail-hero__actions-bottom">
+        <button type="button" class="btn event-detail-join-btn px-4 me-2" (click)="joinEvent()" [disabled]="joining()">
+          <span *ngIf="!joining()">Etkinliğe Katıl</span>
+          <span *ngIf="joining()" class="spinner-border spinner-border-sm text-white" role="status"></span>
+        </button>
+
+        <button type="button" class="btn event-detail-primary-btn px-4" (click)="openParticipantsModal()" [disabled]="event.participantCount === 0 || participantsLoading()" [attr.title]="event.participantCount === 0 ? 'Katılımcı bulunmuyor' : null">Katılımcıları Gör</button>
+      </div>
+      <!-- Hero panel removed to avoid redundancy; detailed stats live in the cards below -->
     </div>
-  </div>
-}
+
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        <article class="event-detail-card event-detail-card--large mb-4">
+          <div class="event-detail-card__header mb-3">
+            <p class="event-detail-card__eyebrow text-uppercase mb-2">Etkinlik Özeti</p>
+            <h2 class="event-detail-card__title mb-0">Detaylar</h2>
+          </div>
+
+          <div class="event-detail-grid">
+              <div class="event-detail-info">
+                <span class="event-detail-info__label">Kategori</span>
+                <strong class="event-detail-info__value">{{ event.category }}</strong>
+              </div>
+              <div class="event-detail-info">
+                <span class="event-detail-info__label">Katılımcı Sayısı</span>
+                <strong class="event-detail-info__value">{{ event.participantCount }}</strong>
+              </div>
+              <div class="event-detail-info">
+                <span class="event-detail-info__label">Tarih</span>
+                <strong class="event-detail-info__value">{{ event.date | trDate }}</strong>
+              </div>
+              <div class="event-detail-info">
+                <span class="event-detail-info__label">Saat</span>
+                <strong class="event-detail-info__value">{{ event.time | trTime }}</strong>
+              </div>
+          </div>
+
+          <div class="event-detail-description mt-4">
+            <p class="event-detail-description__label mb-2">Açıklama</p>
+            <p class="event-detail-description__text mb-0">{{ event.description }}</p>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <aside class="event-detail-side h-100">
+          <div class="event-detail-card event-detail-card--side mb-4">
+            <p class="event-detail-card__eyebrow text-uppercase mb-2">Kısa Bilgi</p>
+            <h2 class="event-detail-card__title mb-3">Bir bakışta</h2>
+
+            <div class="event-detail-side-list">
+              <div class="event-detail-side-list__item">
+                <span>Oluşturan</span>
+                <strong>{{ event.ownerName }}</strong>
+              </div>
+              <div class="event-detail-side-list__item">
+                <span>Konum</span>
+                <strong>{{ event.location }}</strong>
+              </div>
+              <div class="event-detail-side-list__item">
+                <span>Durum</span>
+                <strong>{{ getStatusLabel(event.status) }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Favori durumu kartı kaldırıldı per istek -->
+        </aside>
+      </div>
+    </div>
+
+    @if (participantsModalOpen()) {
+      <div class="event-detail-modal-backdrop" role="presentation" (click)="closeParticipantsModal()"></div>
+      <div class="event-detail-modal" role="dialog" aria-modal="true" aria-labelledby="participants-modal-title">
+        <div class="event-detail-modal__shell" (click)="$event.stopPropagation()">
+          <div class="event-detail-modal__header">
+            <div>
+              <p class="event-detail-card__eyebrow text-uppercase mb-2">Katılımcılar</p>
+              <h2 id="participants-modal-title" class="event-detail-modal__title mb-0">Bu etkinliğe kimler katılıyor?</h2>
+            </div>
+            <button type="button" class="event-detail-modal__close btn btn-link" (click)="closeParticipantsModal()" aria-label="Kapat">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="event-detail-modal__summary">
+            <div class="event-detail-participant-badge">
+              <i class="bi bi-people-fill" aria-hidden="true"></i>
+              <span>{{ event.participantCount }} kişi</span>
+            </div>
+          </div>
+
+          <div class="event-detail-modal__body">
+            @if (participantsLoading()) {
+              <div class="event-detail-loading d-flex justify-content-center align-items-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Katılımcılar yükleniyor...</span>
+                </div>
+              </div>
+            }
+
+            @if (!participantsLoading() && participants().length > 0) {
+              <div class="event-detail-participant-list row g-3 mx-0">
+                @for (participant of participants(); track getParticipantLabel(participant) + ($index + 1)) {
+                  <div class="col-12 col-md-6">
+                    <div class="event-detail-participant-item">
+                      <div class="event-detail-participant-item__avatar" aria-hidden="true">
+                        {{ getParticipantInitials(participant) }}
+                      </div>
+                      <div class="event-detail-participant-item__body">
+                        <strong class="event-detail-participant-item__name d-block">{{ getParticipantLabel(participant) }}</strong>
+                        @if (participant.email) {
+                          <span class="event-detail-participant-item__email d-block">{{ participant.email }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (!participantsLoading() && participants().length === 0) {
+              <div class="event-detail-empty text-center">
+                <p class="event-detail-empty__eyebrow text-uppercase mb-2">Katılımcı listesi</p>
+                <h3 class="h5 fw-bold mb-3">Şu anda liste görüntülenemiyor.</h3>
+                <p class="mb-0">
+                  {{ participantsNotice() || 'Toplam katılımcı sayısı yukarıda gösteriliyor. Liste servisi erişilebilir olduğunda burada isimleri göreceksin.' }}
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  @else {
+    <div class="event-detail-loading-screen d-flex justify-content-center align-items-center">
+      <div class="event-detail-loading-card text-center">
+        <div class="spinner-border text-primary mb-3" role="status">
+          <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+        <h2 class="h5 fw-bold mb-2">Etkinlik yükleniyor</h2>
+        <p class="mb-0">Detaylar, favori durumu ve katılımcı bilgileri hazırlanıyor.</p>
+      </div>
+    </div>
+  }
+</section>

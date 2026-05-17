@@ -1,39 +1,235 @@
 import { Component, signal } from '@angular/core';
+import { NgIf } from '@angular/common';
 import { IEventDetail } from '../../models/IEvents';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../shared/api-url';
 import { TrDatePipe } from '../shared/tr-date.pipe';
 import { TrTimePipe } from '../shared/tr-time.pipe';
+import { FavoriteComponent } from '../shared/favorite/favorite';
+import { NotificationService } from '../shared/notification.service';
+
+interface ParticipantSummary {
+	id?: number;
+	fullName?: string;
+	name?: string;
+	email?: string;
+	avatarUrl?: string;
+}
 
 @Component({
   selector: 'app-event-detail',
-  imports: [TrDatePipe, TrTimePipe],
+  imports: [TrDatePipe, TrTimePipe, FavoriteComponent, NgIf],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.css',
 })
 export class EventDetail {
 
   eventItem = signal<IEventDetail | null>(null);
+  participants = signal<ParticipantSummary[]>([]);
+  loading = signal<boolean>(false);
+  participantsLoading = signal<boolean>(false);
+  participantsNotice = signal<string | null>(null);
+  participantsModalOpen = signal<boolean>(false);
+  joining = signal<boolean>(false);
+  
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private notify: NotificationService
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {
       const id = params['id'];
+      if (!id) {
+        this.notify.error('Etkinlik bulunamadı. Etkinlik listesine yönlendiriliyorsunuz.');
+        this.router.navigate(['/events']);
+        return;
+      }
+
+      this.eventItem.set(null);
+      this.participants.set([]);
+      this.participantsLoading.set(false);
+      this.participantsModalOpen.set(false);
+      this.loading.set(true);
+      this.participantsNotice.set(null);
+
       this.http.get<IEventDetail>(apiUrl(`/event/detail/${id}`), { withCredentials: true }).subscribe({
         next: (response) => {
           this.eventItem.set(response);
+          this.loading.set(false);
         },
         error: (error) => {
-          alert('Etkinlik detayları alınırken bir hata oluştu. Anasayfaya yönlendiriliyorsunuz.');
+          this.loading.set(false);
+          this.notify.error('Etkinlik detayları alınırken bir hata oluştu. Etkinlik listesine yönlendiriliyorsunuz.');
           this.router.navigate(['/events']);
         }
       });
     })
+  }
+
+  joinEvent() {
+    const event = this.eventItem();
+    if (!event || this.joining()) {
+      return;
+    }
+
+    this.joining.set(true);
+    const body = { eventId: event.id };
+    this.http.post<any>(apiUrl('/participant/join'), body, { withCredentials: true }).subscribe({
+      next: (res) => {
+        this.notify.success('Etkinliğe katıldınız.');
+        const current = this.eventItem();
+        if (current) {
+          const newCount = (current.participantCount || 0) + 1;
+          this.eventItem.set({ ...current, participantCount: newCount });
+        }
+        // If modal is open, clear cached participants so user can reload
+        if (this.participantsModalOpen()) {
+          this.participants.set([]);
+        }
+        this.joining.set(false);
+      },
+      error: (err) => {
+        this.joining.set(false);
+        this.notify.error('Etkinliğe katılırken bir hata oluştu.');
+      }
+    });
+  }
+
+  onFavoriteToggled(newState: boolean) {
+    const current = this.eventItem();
+    if (!current) {
+      return;
+    }
+
+    this.eventItem.set({ ...current, isFavorite: newState });
+  }
+
+  openParticipantsModal() {
+    const event = this.eventItem();
+    if (!event) {
+      return;
+    }
+
+    this.participantsModalOpen.set(true);
+    // indicate a global modal is open so app chrome (navbar) can respond
+    try { 
+      document.body.classList.add('modal-open');
+    } catch (e) { console.error('Failed to add modal-open:', e); }
+    this.participantsNotice.set(null);
+
+    if (this.participants().length > 0 || this.participantsLoading()) {
+      return;
+    }
+
+    this.loadParticipants(event.id);
+  }
+
+  closeParticipantsModal() {
+    this.participantsModalOpen.set(false);
+    try { 
+      document.body.classList.remove('modal-open');
+    } catch (e) { console.error('Failed to remove modal-open:', e); }
+  }
+
+  getStatusVariant(status: string): string {
+    const normalizedStatus = status.toLowerCase();
+
+    if (normalizedStatus.includes('published')) {
+      return 'published';
+    }
+
+    if (normalizedStatus.includes('paused')) {
+      return 'paused';
+    }
+
+    if (normalizedStatus.includes('archived')) {
+      return 'archived';
+    }
+
+    return 'published';
+  }
+
+  getStatusLabel(status: string): string {
+    const normalizedStatus = status.toLowerCase();
+
+    if (normalizedStatus.includes('published')) {
+      return 'Yayında';
+    }
+
+    if (normalizedStatus.includes('paused')) {
+      return 'Duraklatıldı';
+    }
+
+    if (normalizedStatus.includes('archived')) {
+      return 'Arşivlendi';
+    }
+
+    return 'Yayında';
+  }
+
+  getParticipantLabel(participant: ParticipantSummary): string {
+    return participant.fullName || participant.name || participant.email || 'İsimsiz katılımcı';
+  }
+
+  getParticipantInitials(participant: ParticipantSummary): string {
+    const label = this.getParticipantLabel(participant).trim();
+    const initials = label
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(part => part.charAt(0))
+      .join('');
+
+    return (initials || 'K').toUpperCase();
+  }
+
+  private loadParticipants(eventId: number) {
+    this.participantsLoading.set(true);
+    this.http.get<any>(apiUrl(`/participant/list/${eventId}`), { withCredentials: true }).subscribe({
+      next: (response) => {
+        this.participants.set(this.extractParticipants(response));
+        this.participantsLoading.set(false);
+
+        if (this.participants().length === 0) {
+          const current = this.eventItem();
+          if (current?.participantCount) {
+            this.participantsNotice.set('Katılımcı listesi şu anda boş görünüyor.');
+          }
+        }
+      },
+      error: () => {
+        this.participants.set([]);
+        this.participantsLoading.set(false);
+        const current = this.eventItem();
+        if (current?.participantCount) {
+          this.participantsNotice.set('Katılımcı listesi şu anda yüklenemiyor.');
+        }
+      },
+    });
+  }
+
+  private extractParticipants(response: unknown): ParticipantSummary[] {
+    if (Array.isArray(response)) {
+      return response as ParticipantSummary[];
+    }
+
+    if (response && typeof response === 'object') {
+      const record = response as Record<string, unknown>;
+      const content = record['content'];
+      const participants = record['participants'];
+      const data = record['data'];
+      const items = record['items'];
+      const list = content ?? participants ?? data ?? items;
+
+      if (Array.isArray(list)) {
+        return list as ParticipantSummary[];
+      }
+    }
+
+    return [];
   }
 }

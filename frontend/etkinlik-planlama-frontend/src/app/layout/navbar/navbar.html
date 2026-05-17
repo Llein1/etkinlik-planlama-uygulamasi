@@ -31,8 +31,11 @@
         </li>
       </ul>
       <form class="d-flex" role="search" (ngSubmit)="search()">
-        <input name="q" [(ngModel)]="searchQuery" class="form-control me-2" type="search" placeholder="Ara" aria-label="Ara"/>
-        <button class="btn btn-outline-success" type="submit">Ara</button>
+        <input name="q" [(ngModel)]="searchQuery" class="form-control me-2" type="search" placeholder="Ne Aramıştınız?" aria-label="Ara"/>
+        <button class="btn btn-outline-success d-inline-flex align-items-center gap-2" type="submit">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <span>Ara</span>
+        </button>
       </form>
     </div>
   </div>

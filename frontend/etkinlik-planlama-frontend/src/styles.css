@@ -54,10 +54,6 @@
 	--swiper-pagination-progressbar-size: 4px;
 }
 
-html, body {
-	overflow-x: hidden;
-}
-
 body {
 	font-family: var(--font-regular);
 	background: var(--page-bg);
@@ -102,6 +98,11 @@ body {
 
 .transition-fast {
 	transition: 0.2s ease-in;
+}
+
+.spinner-border,
+.spinner-grow {
+	color: var(--color-primary) !important;
 }
 
 .swiper-fade swiper-slide {
@@ -293,6 +294,14 @@ body {
 .app-icon-link-red .bi {
 	font-size: 0.95rem;
 	line-height: 1;
+}
+
+/* Blur navbar when a modal is open (global scope ensures it reaches component-scoped navbar) */
+body.modal-open nav.app-navbar {
+	-webkit-filter: blur(6px) !important;
+	filter: blur(6px) !important;
+	transition: filter 0.22s ease, -webkit-filter 0.22s ease !important;
+	opacity: 0.85;
 }
 
 
