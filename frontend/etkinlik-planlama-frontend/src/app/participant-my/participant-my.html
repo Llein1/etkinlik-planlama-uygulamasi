@@ -1,0 +1,108 @@
+<section class="event-my-page container py-4 py-lg-5">
+  <div class="event-my-hero mb-4 mb-lg-5">
+    <div class="event-my-hero__copy">
+      <p class="event-my-hero__eyebrow text-uppercase mb-2">Katıldığım Etkinlikler</p>
+      <h1 class="event-my-hero__title mb-3">Katıldıklarım</h1>
+      <p class="event-my-hero__text mb-0">
+        Katıldığınız etkinlikleri burada görüntüleyebilir, favorilere ekleyebilir veya detaylarına gidebilirsiniz.
+      </p>
+
+      <div class="d-flex flex-wrap gap-3 mt-4">
+        <a routerLink="/events" class="btn btn-outline-light px-4">Tüm Etkinlikler</a>
+        <a routerLink="/event-create" class="btn event-my-cta px-4">
+					<span class="event-my-cta__icon" aria-hidden="true"><i class="bi bi-plus-square"></i></span>
+					<span class="event-my-cta__label">Yeni Etkinlik Oluştur</span>
+				</a>
+      </div>
+    </div>
+
+    <div class="event-my-hero__panel">
+      <p class="event-my-hero__panel-label mb-2">Toplam</p>
+      <strong class="event-my-hero__panel-value d-block">{{ totalElements() }}</strong>
+      <span class="event-my-hero__panel-note d-block mt-2">
+        {{ pages().length }} sayfa · aktif sayfa {{ activePage() + 1 }}
+      </span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="event-my-loading d-flex justify-content-center align-items-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Yükleniyor...</span>
+      </div>
+    </div>
+  }
+
+  @if (!loading() && eventArray().length === 0) {
+    <div class="event-my-empty text-center mx-auto">
+      <p class="event-my-empty__eyebrow text-uppercase mb-2">Henüz kayıt yok</p>
+      <h2 class="h4 fw-bold mb-3">Henüz katıldığınız bir etkinlik yok.</h2>
+      <p class="mb-4">İlginizi çeken etkinliklerin detayına gidip katılabilirsiniz.</p>
+      <a routerLink="/events" class="btn event-my-cta px-4">Etkinlikleri Keşfet</a>
+    </div>
+  }
+
+  @if (!loading() && eventArray().length > 0) {
+    <div class="row g-4">
+      @for (item of eventArray(); track item.id) {
+        <div class="col-12 col-md-6 col-xl-4">
+          <article class="event-my-card h-100">
+            <div class="event-my-card__top">
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                <span class="event-my-card__category">{{ item.category }}</span>
+                <span class="event-my-card__status event-my-card__status--{{ getStatusVariant(item.status) }}">{{ getStatusLabel(item.status) }}</span>
+              </div>
+
+              <h2 class="event-my-card__title mb-3">{{ item.title }}</h2>
+              <p class="event-my-card__datetime mb-0">{{ item.date | trDate }} · {{ item.time | trTime }}</p>
+            </div>
+
+            <div class="event-my-card__body">
+              <div class="event-my-card__info-row">
+                <span>Konum</span>
+                <strong>{{ item.location }}</strong>
+              </div>
+              <div class="event-my-card__info-row">
+                <span>Sahip</span>
+                <strong>{{ item.ownerName }}</strong>
+              </div>
+              <div class="event-my-card__info-row">
+                <span>Durum</span>
+                <strong>{{ getStatusLabel(item.status) }}</strong>
+              </div>
+            </div>
+
+            <div class="event-my-card__footer d-flex align-items-center justify-content-between gap-3">
+              <app-favorite [eventId]="item.id" [isFavorite]="item.isFavorite" (toggled)="onFavoriteToggled(item, $event)"></app-favorite>
+              <a [routerLink]="['/event/detail', item.id]" [state]="{ event: item }" class="btn btn-sm px-3 event-my-edit">
+                <span class="event-my-edit__icon" aria-hidden="true">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </span>
+                <span class="event-my-edit__label">Detayları Gör</span>
+              </a>
+            </div>
+          </article>
+        </div>
+      }
+    </div>
+
+    @if (pages().length > 1) {
+      <nav class="event-my-pagination mt-5" aria-label="Katıldığım etkinlikler sayfalama">
+        <ul class="pagination justify-content-center flex-wrap gap-2 mb-0">
+          @for (page of pages(); track page) {
+            <li class="page-item">
+              <a
+                class="page-link"
+                [class.active]="page === activePage()"
+                role="button"
+                (click)="fetchEvents(page)"
+              >
+                {{ page + 1 }}
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
+    }
+  }
+</section>

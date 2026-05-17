@@ -1,0 +1,46 @@
+.favorite-btn {
+  background: var(--color-white);
+  border: 1px solid rgba(30,31,31,0.06);
+  padding: 0.35rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, color .12s ease;
+}
+
+.favorite-btn { color: var(--color-dark); }
+.favorite-btn:hover { transform: translateY(-1px); }
+
+.favorite-btn svg { display: block; }
+
+.favorite-btn.active { color: var(--color-primary); box-shadow: 0 8px 26px rgba(220,41,30,0.18); border-color: rgba(220,41,30,0.12); }
+
+/* pop animation */
+@keyframes pop {
+  0% {
+    transform: scale(1) translateY(0);
+    box-shadow: 0 6px 18px rgba(220,41,30,0.0);
+  }
+  40% {
+    transform: scale(1.22) translateY(-4px);
+    box-shadow: 0 18px 46px rgba(220,41,30,0.22);
+  }
+  70% {
+    transform: scale(1.06) translateY(-2px);
+    box-shadow: 0 12px 34px rgba(220,41,30,0.14);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    box-shadow: 0 8px 26px rgba(220,41,30,0.08);
+  }
+}
+.favorite-btn.pop { animation: pop 320ms cubic-bezier(.2,.9,.3,1); }
+
+/* Ensure spinner follows current icon color */
+.favorite-btn .spinner-border { color: currentColor; }
+
+/* Tooltip removed — no ::after rules */

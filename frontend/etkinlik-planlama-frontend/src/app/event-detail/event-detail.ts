@@ -1,12 +1,14 @@
 import { Component, signal } from '@angular/core';
 import { IEventDetail } from '../../models/IEvents';
-import { ActivatedRoute, Route, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../shared/api-url';
+import { TrDatePipe } from '../shared/tr-date.pipe';
+import { TrTimePipe } from '../shared/tr-time.pipe';
 
 @Component({
   selector: 'app-event-detail',
-  imports: [],
+  imports: [TrDatePipe, TrTimePipe],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.css',
 })

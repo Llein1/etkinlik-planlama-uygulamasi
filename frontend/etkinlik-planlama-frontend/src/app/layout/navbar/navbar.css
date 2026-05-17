@@ -1,0 +1,200 @@
+:host {
+	display: block;
+	padding: 1rem 1rem 0;
+}
+
+.app-navbar {
+	position: relative;
+	z-index: 20;
+	border: 1px solid var(--color-border-soft);
+	border-radius: calc(var(--radius-xl) + 0.35rem);
+	overflow: visible;
+	background:
+		radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 26%),
+		linear-gradient(135deg, #231f1f 0%, #3a2320 48%, var(--color-primary) 100%);
+	box-shadow: 0 1.35rem 3rem rgba(30, 31, 31, 0.14);
+	backdrop-filter: blur(1rem);
+	color: var(--color-white);
+}
+
+.app-navbar .container-fluid {
+	padding: 1rem 1.25rem;
+}
+
+.app-navbar .navbar-brand img {
+	display: block;
+	filter: brightness(0) invert(1);
+	transition: transform 0.2s ease;
+}
+
+.app-navbar .navbar-brand:hover img {
+	transform: scale(1.02);
+}
+
+.app-navbar .navbar-toggler {
+	border-color: rgba(255, 255, 255, 0.28);
+	box-shadow: none;
+}
+
+.app-navbar .navbar-toggler-icon {
+	filter: brightness(0) invert(1);
+}
+
+.app-navbar .navbar-nav {
+	gap: 0.25rem;
+}
+
+.app-navbar .nav-link,
+.app-navbar .dropdown-toggle,
+.app-navbar .navbar-text {
+	color: rgba(255, 255, 255, 0.9);
+	font-family: var(--font-medium);
+	border-radius: 999px;
+	padding-inline: 0.9rem;
+	transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link:focus,
+.app-navbar .dropdown-toggle:hover,
+.app-navbar .dropdown-toggle:focus {
+	color: var(--color-white);
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.app-navbar .nav-link.active {
+	background: rgba(255, 255, 255, 0.16);
+	color: var(--color-white);
+}
+
+.app-navbar .nav-link.disabled {
+	color: rgba(255, 255, 255, 0.72);
+}
+
+.app-navbar .dropdown-menu {
+	border: 1px solid var(--color-border-soft);
+	border-radius: var(--radius-lg);
+	padding: 0.6rem;
+	background: rgba(255, 255, 255, 0.96);
+	box-shadow: var(--shadow-soft);
+}
+
+.app-navbar .dropdown-item {
+	border-radius: 0.85rem;
+	font-family: var(--font-medium);
+	color: var(--color-dark);
+	padding: 0.7rem 0.9rem;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.app-navbar .dropdown-item:hover,
+.app-navbar .dropdown-item:focus,
+.app-navbar .dropdown-item.active {
+	background: var(--color-primary-light);
+	color: var(--color-primary-dark);
+}
+
+.app-navbar .dropdown-divider {
+	border-top-color: var(--color-border-soft);
+	opacity: 1;
+}
+
+.app-navbar .form-control {
+	border: 1px solid rgba(255, 255, 255, 0.22);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.14);
+	color: var(--color-white);
+	box-shadow: none;
+}
+
+.app-navbar .form-control::placeholder {
+	color: rgba(255, 255, 255, 0.72);
+}
+
+.app-navbar .form-control:focus {
+	border-color: rgba(255, 255, 255, 0.42);
+	background: rgba(255, 255, 255, 0.18);
+	color: var(--color-white);
+	box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.14);
+}
+
+.app-navbar .btn-outline-success {
+	border-color: rgba(255, 255, 255, 0.3);
+	color: var(--color-white);
+	border-radius: 999px;
+	font-family: var(--font-medium);
+	background: rgba(255, 255, 255, 0.08);
+	transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.app-navbar .btn-outline-success:hover,
+.app-navbar .btn-outline-success:focus {
+	background: var(--color-white);
+	border-color: var(--color-white);
+	color: var(--color-primary-dark);
+	transform: translateY(-0.08rem);
+}
+
+.logout-modal-backdrop {
+	background: rgba(30, 31, 31, 0.48);
+	z-index: 1055;
+}
+
+.logout-modal-content {
+	border: 1px solid var(--color-border-soft);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-soft);
+}
+
+.logout-modal-content .modal-title {
+	font-family: var(--font-semibold);
+	color: var(--color-dark);
+}
+
+.logout-modal-content .modal-body {
+	font-family: var(--font-regular);
+	color: var(--color-ink-soft);
+}
+
+.logout-modal-content .btn-primary {
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+	font-family: var(--font-medium);
+}
+
+.logout-modal-content .btn-primary:hover,
+.logout-modal-content .btn-primary:focus {
+	background-color: var(--color-primary-dark);
+	border-color: var(--color-primary-dark);
+}
+
+.logout-modal-content .btn-secondary {
+	background-color: var(--color-gray);
+	border-color: var(--color-gray);
+	font-family: var(--font-medium);
+}
+
+.logout-modal-content .btn-secondary:hover,
+.logout-modal-content .btn-secondary:focus {
+	background-color: var(--color-gray-medium);
+	border-color: var(--color-gray-medium);
+}
+
+@media (max-width: 991.98px) {
+	:host {
+		padding: 0.75rem 0.75rem 0;
+	}
+
+	.app-navbar .container-fluid {
+		padding: 0.9rem 1rem;
+	}
+
+	.app-navbar .navbar-collapse {
+		padding-top: 1rem;
+	}
+
+	.app-navbar .form-control {
+		margin-bottom: 0.75rem;
+	}
+}
+

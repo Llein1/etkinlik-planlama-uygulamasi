@@ -14,6 +14,8 @@ import com.works.backend.repository.EventFavoriteRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -73,19 +75,25 @@ public class EventParticipantService {
         return ResponseEntity.ok().body(responseDtos);
     }
 
-    public ResponseEntity listMyParticipations() {
+    public Page<EventResponseDto> listMyParticipations(int page) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
-            return ResponseEntity.status(401).body(hm);
+            return Page.empty();
         }
-        Set<Long> favoriteEventIds = getFavoriteEventIds(optionalUser.get().getId());
-        List<EventParticipant> participants = eventParticipantRepository.findByUser_Id(optionalUser.get().getId());
-        List<EventResponseDto> responseDtos = participants.stream()
-                .map(EventParticipant::getEvent)
-                .map(event -> toEventResponse(event, favoriteEventIds))
-                .toList();
-        return ResponseEntity.ok().body(responseDtos);
+        Pageable pageable = Pageable.ofSize(9).withPage(page);
+        Set<Long> favoriteEventIds =
+                getFavoriteEventIds(optionalUser.get().getId());
+        Page<EventParticipant> participants =
+                eventParticipantRepository.findByUser_Id(
+                        optionalUser.get().getId(),
+                        pageable
+                );
+        return participants.map(participant ->
+                toEventResponse(
+                        participant.getEvent(),
+                        favoriteEventIds
+                )
+        );
     }
 
     private Optional<User> getSessionUser() {

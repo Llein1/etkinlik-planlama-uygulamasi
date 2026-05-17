@@ -6,7 +6,10 @@
 					<p class="event-create__eyebrow text-uppercase fw-semibold small mb-2">Yeni Etkinlik</p>
 					<h1 class="h3 fw-bold mb-0">Etkinlik Oluştur</h1>
 				</div>
-				<a class="btn btn-outline-secondary" routerLink="/events">Etkinliklere Dön</a>
+				<a class="btn btn-outline-secondary icon-link icon-link-hover app-icon-link-red" routerLink="/events">
+					<i class="bi bi-arrow-left" aria-hidden="true"></i>
+					Etkinliklere Dön
+				</a>
 			</div>
 
 			<div class="card border-0 shadow-sm">
@@ -71,6 +74,23 @@
 									*ngIf="eventForm.get('category')?.touched && eventForm.get('category')?.invalid"
 								>
 									Kategori seçimi zorunludur.
+								</div>
+							</div>
+
+							<div class="col-12 col-md-6" *ngIf="isCustomCategorySelected">
+								<label class="form-label fw-semibold" for="customCategory">Özel Kategori</label>
+								<input
+									id="customCategory"
+									type="text"
+									class="form-control"
+									placeholder="Örn. Toplantı ve Koordinasyon"
+									formControlName="customCategory"
+								/>
+								<div
+									class="text-danger small mt-2"
+									*ngIf="eventForm.get('customCategory')?.touched && eventForm.get('customCategory')?.invalid"
+								>
+									Özel kategori en az 3 karakter olmalıdır.
 								</div>
 							</div>
 

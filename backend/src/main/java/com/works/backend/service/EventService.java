@@ -138,7 +138,7 @@ public class EventService {
 
     @Cacheable(cacheNames = "eventListCache", key = "#page + '-' + #root.target.getSessionUserId()")
     public Page<EventResponseDto> listPublished(int page) {
-        Pageable pageable = Pageable.ofSize(10).withPage(page);
+        Pageable pageable = Pageable.ofSize(9).withPage(page);
         Set<Long> favoriteEventIds = getFavoriteEventIds(getSessionUser());
         return eventRepository.findByStatus(EventStatus.PUBLISHED, pageable)
                 .map(event -> toEventResponse(event, favoriteEventIds));
@@ -146,7 +146,7 @@ public class EventService {
 
     @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page + '-' + #root.target.getSessionUserId()")
     public Page<EventResponseDto> search(String q, int page) {
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page, 9);
         Set<Long> favoriteEventIds = getFavoriteEventIds(getSessionUser());
         return eventRepository.findByTitleContainsOrDescriptionContainsOrLocationContainsOrCategoryContainsAllIgnoreCase(
                         q, q, q, q, pageable)
@@ -159,7 +159,7 @@ public class EventService {
         if (optionalUser.isEmpty()) {
             return Page.empty();
         }
-        Pageable pageable = Pageable.ofSize(10).withPage(page);
+        Pageable pageable = Pageable.ofSize(9).withPage(page);
         Set<Long> favoriteEventIds = getFavoriteEventIds(optionalUser);
         return eventRepository.findByOwner_Id(optionalUser.get().getId(), pageable)
                 .map(event -> toEventResponse(event, favoriteEventIds));

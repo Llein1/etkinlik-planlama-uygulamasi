@@ -1,13 +1,15 @@
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg app-navbar">
   <div class="container-fluid">
-    <a class="navbar-brand" routerLink="/events">EU Etkinlik</a>
+    <a class="navbar-brand" routerLink="/events">
+      <img src="images/EUEtkinlik-removebg-preview.png" alt="EUEtkinlik" width="auto" height="48" class="d-inline-block align-text-top"/>
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" routerLink="/events" routerLinkActive="active" aria-current="page">Etkinlikler</a>
+          <a class="nav-link" routerLink="/events" routerLinkActive="active" aria-current="page">Tüm Etkinlikler</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/event-create" routerLinkActive="active" aria-current="page">Etkinlik Oluştur</a>
@@ -17,15 +19,15 @@
             Profil
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Oluşturduğum Etkinlikler</a></li>
-            <li><a class="dropdown-item" href="#">Katıldığım Etkinlikler</a></li>
-            <li><a class="dropdown-item" routerLink="/favorite/my" routerLinkActive="active">Favorilerim</a></li>
+            <li><a class="dropdown-item" routerLink="/favorite-my" routerLinkActive="active">Favorilerim</a></li>
+            <li><a class="dropdown-item" routerLink="/event-my" routerLinkActive="active">Oluşturduğum Etkinlikler</a></li>
+            <li><a class="dropdown-item" routerLink="/participant-my" routerLinkActive="active">Katıldığım Etkinlikler</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" role="button" (click)="logout()">Çıkış Yap</a></li>
+            <li><a class="dropdown-item" role="button" (click)="openLogoutModal()">Çıkış Yap</a></li>
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link disabled" aria-disabled="true">{{ globalName }}</a>
+          <a class="nav-link disabled" aria-disabled="true">Hoşgeldin, {{ globalName }}</a>
         </li>
       </ul>
       <form class="d-flex" role="search" (ngSubmit)="search()">
@@ -35,3 +37,28 @@
     </div>
   </div>
 </nav>
+
+<div
+  *ngIf="showLogoutModal"
+  class="modal fade show d-block logout-modal-backdrop"
+  tabindex="-1"
+  aria-modal="true"
+  role="dialog"
+  (click)="closeLogoutModal()"
+>
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content logout-modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Çıkış Onayı</h5>
+        <button type="button" class="btn-close" aria-label="Kapat" (click)="closeLogoutModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Çıkış yapmak istediğinize emin misiniz?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeLogoutModal()">Vazgeç</button>
+        <button type="button" class="btn btn-primary" (click)="logout()">Çıkış Yap</button>
+      </div>
+    </div>
+  </div>
+</div>

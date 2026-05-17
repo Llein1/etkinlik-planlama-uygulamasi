@@ -1,9 +1,11 @@
 package com.works.backend.controller;
 
+import com.works.backend.dto.EventResponseDto;
 import com.works.backend.dto.JoinEventRequestDto;
 import com.works.backend.service.EventParticipantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +27,8 @@ public class EventParticipantRestController {
     }
 
     @GetMapping("my")
-    public ResponseEntity listMy() {
-        return eventParticipantService.listMyParticipations();
+    public Page<EventResponseDto> listMy(@RequestParam(defaultValue = "0") int page) {
+        return eventParticipantService.listMyParticipations(page);
     }
 }
 

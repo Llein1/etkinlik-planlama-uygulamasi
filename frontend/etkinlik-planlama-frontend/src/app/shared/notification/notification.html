@@ -1,0 +1,17 @@
+@if (notificationService.notification(); as notification) {
+	<div class="notification-shell">
+		<div class="notification-card {{ toneClass }}" role="status" aria-live="polite">
+			<div class="notification-card__content">
+				<strong class="notification-card__title">
+					@if (notification.type === 'success') { Başarılı }
+					@else if (notification.type === 'error') { Hata }
+					@else { Bilgi }
+				</strong>
+				<p class="notification-card__message mb-0">{{ notification.message }}</p>
+			</div>
+			<button type="button" class="notification-card__close" (click)="close()" aria-label="Bildirimi kapat">
+				×
+			</button>
+		</div>
+	</div>
+}

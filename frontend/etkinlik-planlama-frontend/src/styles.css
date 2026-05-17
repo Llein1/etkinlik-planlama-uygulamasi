@@ -1,4 +1,13 @@
+
+/* Swiper styles are loaded via CDN in index.html (no local @import). */
+
 :root {
+	--font-regular: 'Poppins', sans-serif;
+	--font-medium: 'Poppins', sans-serif;
+	--font-semibold: 'Poppins', sans-serif;
+	--font-bold: 'Poppins', sans-serif;
+	--font-display: 'Poppins', sans-serif;
+
 	--color-primary: #dc291e;
 	--color-primary-dark: #b02018;
 	--color-primary-light: #fbe9e8;
@@ -11,6 +20,22 @@
 	--color-gray-light: #d6d7d7;
 
 	--color-white: #ffffff;
+	--color-surface: #ffffff;
+	--color-surface-soft: #fff8f7;
+	--color-surface-strong: #f4ece9;
+	--color-border-soft: rgba(220, 41, 30, 0.12);
+	--color-border-strong: rgba(30, 31, 31, 0.08);
+	--color-ink-soft: rgba(30, 31, 31, 0.72);
+
+	--page-bg: #f7f2f0;
+	--surface-overlay: rgba(255, 255, 255, 0.88);
+	--hero-gradient: linear-gradient(135deg, #1e1f1f 0%, #2f2522 45%, #dc291e 100%);
+	--soft-gradient: linear-gradient(145deg, rgba(220, 41, 30, 0.12), rgba(30, 31, 31, 0.04));
+	--shadow-soft: 0 24px 60px rgba(30, 31, 31, 0.12);
+	--shadow-strong: 0 30px 80px rgba(220, 41, 30, 0.18);
+	--radius-xl: 2rem;
+	--radius-lg: 1.25rem;
+	--radius-md: 0.875rem;
 
 	/* Swiper variables */
 	--swiper-navigation-size: 44px;
@@ -27,6 +52,16 @@
 	--swiper-pagination-bullet-vertical-gap: 6px;
 	--swiper-pagination-bottom: 8px;
 	--swiper-pagination-progressbar-size: 4px;
+}
+
+html, body {
+	overflow-x: hidden;
+}
+
+body {
+	font-family: var(--font-regular);
+	background: var(--page-bg);
+	color: var(--color-dark);
 }
 
 @keyframes spin {
@@ -87,6 +122,9 @@
 	backface-visibility: hidden;
 	overflow: hidden;
 }
+
+/* Swiper styles (requires `swiper` package or CDN) */
+/* The imports are placed at the top of this file. */
 
 .swiper-button-prev,
 .swiper-button-next {
@@ -196,6 +234,65 @@
 
 .swiper {
 	z-index: 0;
+}
+
+.event-my-card__footer .event-my-edit {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	background: var(--color-white);
+	color: var(--color-primary-dark);
+	border: 1px solid rgba(220, 41, 30, 0.14);
+	padding: 0.35rem 0.6rem;
+	border-radius: 0.5rem;
+	box-shadow: 0 6px 16px rgba(30, 31, 31, 0.04);
+	font-family: var(--font-medium);
+	font-size: 0.85rem;
+	text-decoration: none;
+	transition: background-color 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1), color 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.event-my-card__footer .event-my-edit__icon svg {
+	display: block;
+}
+
+.event-my-card__footer .event-my-edit__icon .bi {
+	display: inline-block;
+	font-size: 1rem;
+	line-height: 1;
+}
+
+.event-my-card__footer .event-my-edit:hover,
+.event-my-card__footer .event-my-edit:focus-visible {
+	background: var(--color-primary);
+	color: var(--color-white);
+	border-color: var(--color-primary);
+	box-shadow: 0 14px 40px rgba(220, 41, 30, 0.22);
+}
+
+.app-icon-link-red {
+	--bs-link-hover-color-rgb: 176, 32, 24;
+	--bs-icon-link-transform: translate3d(-0.25em, 0, 0);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	color: var(--color-primary);
+	border-color: var(--color-primary);
+	font-family: var(--font-medium);
+	text-decoration: none;
+	transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.app-icon-link-red:hover,
+.app-icon-link-red:focus-visible {
+	color: var(--color-white);
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+.app-icon-link-red .bi {
+	font-size: 0.95rem;
+	line-height: 1;
 }
 
 

@@ -1,8 +1,9 @@
 @if (eventItem() !== null) {
   <div class="event-detail-container">
     <h2>{{ eventItem()?.title }}</h2>
-    <p><strong>Date:</strong> {{ eventItem()?.date }}</p>
-    <p><strong>Description:</strong> {{ eventItem()?.description }}</p>
+    <p><strong>Tarih:</strong> {{ eventItem()?.date | trDate }}</p>
+    <p><strong>Saat:</strong> {{ eventItem()?.time | trTime }}</p>
+    <p><strong>Açıklama:</strong> {{ eventItem()?.description }}</p>
   </div>
 }
 @else {

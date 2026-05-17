@@ -12,6 +12,8 @@ import com.works.backend.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,18 +79,20 @@ public class EventFavoriteService {
         return ResponseEntity.ok().body(hm);
     }
 
-    public ResponseEntity listMyFavorites() {
+    public Page<EventResponseDto> listMyFavorites(int page) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
-            return ResponseEntity.status(401).body(hm);
+            return Page.empty();
         }
-        List<EventFavorite> favorites = eventFavoriteRepository.findByUser_Id(optionalUser.get().getId());
-        List<EventResponseDto> responseDtos = favorites.stream()
-                .map(EventFavorite::getEvent)
-                .map(event -> toEventResponse(event, true))
-                .toList();
-        return ResponseEntity.ok().body(responseDtos);
+        Pageable pageable = Pageable.ofSize(9).withPage(page);
+        Page<EventFavorite> favorites =
+                eventFavoriteRepository.findByUser_Id(
+                        optionalUser.get().getId(),
+                        pageable
+                );
+        return favorites.map(favorite ->
+                toEventResponse(favorite.getEvent(), true)
+        );
     }
 
     private Optional<User> getSessionUser() {

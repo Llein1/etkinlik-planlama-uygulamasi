@@ -6,6 +6,7 @@ export interface IEvents {
 export interface Event {
   category: string
   date: string
+  description?: string
   id: number
   isFavorite: boolean
   location: string
