@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, ElementRef, HostListener, inject } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { timeout } from 'rxjs';
 import { IEventDetail } from '../../models/IEvents';
@@ -10,8 +10,8 @@ import { apiUrl } from '../shared/api-url';
 import { NotificationService } from '../shared/notification.service';
 
 @Component({
-	selector: 'app-event-update',
-	imports: [ReactiveFormsModule, CommonModule, RouterModule],
+    selector: 'app-event-update',
+    imports: [ReactiveFormsModule, FormsModule, CommonModule, RouterModule],
 	templateUrl: './event-update.html',
 	styleUrl: './event-update.css',
 })
@@ -20,12 +20,36 @@ export class EventUpdate {
 	private route = inject(ActivatedRoute);
 	private router = inject(Router);
 	private notificationService = inject(NotificationService);
+	private elementRef = inject(ElementRef);
 
 	eventForm: FormGroup;
 	submitting = false;
 	loading = true;
+	isDatePickerOpen = false;
+	isTimePickerOpen = false;
+	isHourListOpen = false;
+	isMinuteListOpen = false;
 	eventId: number | null = null;
 	categories = EVENT_CATEGORY_OPTIONS;
+	monthNames = [
+		'Ocak',
+		'Şubat',
+		'Mart',
+		'Nisan',
+		'Mayıs',
+		'Haziran',
+		'Temmuz',
+		'Ağustos',
+		'Eylül',
+		'Ekim',
+		'Kasım',
+		'Aralık',
+	];
+	weekdayNames = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'];
+	selectedHour = '00';
+	selectedMinute = '00';
+	calendarYear = new Date().getFullYear();
+	calendarMonth = new Date().getMonth();
 	private originalFormSnapshot: Record<string, string> | null = null;
 
 	constructor(private formBuilder: FormBuilder) {
@@ -40,6 +64,169 @@ export class EventUpdate {
 		});
 
 		this.syncCustomCategoryRules();
+	}
+
+	@HostListener('document:click', ['$event'])
+	onDocumentClick(event: MouseEvent) {
+		if (!this.elementRef.nativeElement.contains(event.target)) {
+			this.closePickers();
+		}
+	}
+
+	get hourOptions() {
+		return Array.from({ length: 24 }, (_, index) => `${index}`.padStart(2, '0'));
+	}
+
+	get minuteOptions() {
+		return Array.from({ length: 60 }, (_, index) => `${index}`.padStart(2, '0'));
+	}
+
+	toggleDatePicker() {
+		this.isDatePickerOpen = !this.isDatePickerOpen;
+		this.isTimePickerOpen = false;
+		this.syncCalendarToSelectedDate();
+	}
+
+	toggleTimePicker() {
+		this.isTimePickerOpen = !this.isTimePickerOpen;
+		this.isDatePickerOpen = false;
+		this.isHourListOpen = false;
+		this.isMinuteListOpen = false;
+
+		if (this.isTimePickerOpen) {
+			this.syncTimeControlsFromForm();
+		}
+	}
+
+	closePickers() {
+		this.isDatePickerOpen = false;
+		this.isTimePickerOpen = false;
+		this.isHourListOpen = false;
+		this.isMinuteListOpen = false;
+	}
+
+	toggleHourList() {
+		this.isHourListOpen = !this.isHourListOpen;
+		this.isMinuteListOpen = false;
+	}
+
+	toggleMinuteList() {
+		this.isMinuteListOpen = !this.isMinuteListOpen;
+		this.isHourListOpen = false;
+	}
+
+	selectHour(hour: string) {
+		this.selectedHour = hour;
+		this.isHourListOpen = false;
+		this.updateTimeSelection();
+	}
+
+	selectMinute(minute: string) {
+		this.selectedMinute = minute;
+		this.isMinuteListOpen = false;
+		this.updateTimeSelection();
+	}
+
+	selectDate(dateValue: string) {
+		this.eventForm.get('date')?.setValue(dateValue);
+		this.eventForm.get('date')?.markAsTouched();
+		this.isDatePickerOpen = false;
+	}
+
+	updateTimeSelection() {
+		const timeValue = `${this.selectedHour}:${this.selectedMinute}`;
+		this.eventForm.get('time')?.setValue(timeValue);
+		this.eventForm.get('time')?.markAsTouched();
+	}
+
+	private syncCalendarToSelectedDate() {
+		const selectedDate = this.eventForm.get('date')?.value as string;
+		const sourceDate = selectedDate ? new Date(`${selectedDate}T00:00:00`) : new Date();
+
+		if (!Number.isNaN(sourceDate.getTime())) {
+			this.calendarYear = sourceDate.getFullYear();
+			this.calendarMonth = sourceDate.getMonth();
+		}
+	}
+
+	private syncTimeControlsFromForm() {
+		const value = (this.eventForm.get('time')?.value as string) || '00:00';
+		const [hour = '00', minute = '00'] = value.split(':');
+
+		this.selectedHour = hour.padStart(2, '0');
+		this.selectedMinute = minute.padStart(2, '0');
+	}
+
+	/**
+	 * Calendar generation and navigation helpers
+	 */
+	previousMonth() {
+		if (this.calendarMonth === 0) {
+			this.calendarMonth = 11;
+			this.calendarYear -= 1;
+		} else {
+			this.calendarMonth -= 1;
+		}
+	}
+
+	nextMonth() {
+		if (this.calendarMonth === 11) {
+			this.calendarMonth = 0;
+			this.calendarYear += 1;
+		} else {
+			this.calendarMonth += 1;
+		}
+	}
+
+	formatDateInput(date?: Date) {
+		const d = date ?? new Date();
+		const yyyy = d.getFullYear();
+		const mm = `${d.getMonth() + 1}`.padStart(2, '0');
+		const dd = `${d.getDate()}`.padStart(2, '0');
+		return `${yyyy}-${mm}-${dd}`;
+	}
+
+	get calendarCells() {
+		const cells: Array<{
+			day: number;
+			iso: string;
+			inCurrentMonth: boolean;
+			isToday: boolean;
+			isSelected: boolean;
+			isDisabled: boolean;
+		}> = [];
+
+		const year = this.calendarYear;
+		const month = this.calendarMonth;
+		const firstOfMonth = new Date(year, month, 1);
+		// JS: 0 = Sunday, 1 = Monday, ... We want Monday-first grid
+		const startIndex = (firstOfMonth.getDay() + 6) % 7; // offset to Monday
+		const totalCells = 42; // 6 weeks
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		for (let i = 0; i < totalCells; i++) {
+			const dayOffset = i - startIndex;
+			const cellDate = new Date(year, month, 1 + dayOffset);
+			const inCurrentMonth = cellDate.getMonth() === month;
+			const iso = this.formatDateInput(cellDate);
+			const isToday = cellDate.getTime() === today.getTime();
+			const selectedIso = this.eventForm.get('date')?.value as string;
+			const isSelected = Boolean(selectedIso && selectedIso === iso);
+			const isDisabled = cellDate.getTime() < today.getTime();
+
+			cells.push({
+				day: cellDate.getDate(),
+				iso,
+				inCurrentMonth,
+				isToday,
+				isSelected,
+				isDisabled,
+			});
+		}
+
+		return cells;
 	}
 
 	get isCustomCategorySelected() {

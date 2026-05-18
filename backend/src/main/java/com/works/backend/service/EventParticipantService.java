@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,28 @@ public class EventParticipantService {
         eventParticipant.setUser(optionalUser.get());
         eventParticipantRepository.save(eventParticipant);
         Map<String, Object> hm = Map.of("success", true, "message", "Joined successfully.");
+        return ResponseEntity.ok().body(hm);
+    }
+
+    @Transactional
+    public ResponseEntity leave(Long eventId) {
+        Optional<User> optionalUser = getSessionUser();
+        if (optionalUser.isEmpty()) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            return ResponseEntity.status(401).body(hm);
+        }
+        Optional<Event> optionalEvent = eventRepository.findById(eventId);
+        if (optionalEvent.isEmpty()) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+            return ResponseEntity.status(404).body(hm);
+        }
+        boolean isExists = eventParticipantRepository.existsByEvent_IdAndUser_Id(eventId, optionalUser.get().getId());
+        if (!isExists) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Participation not found.");
+            return ResponseEntity.status(404).body(hm);
+        }
+        eventParticipantRepository.deleteByEvent_IdAndUser_Id(eventId, optionalUser.get().getId());
+        Map<String, Object> hm = Map.of("success", true, "message", "Left successfully.");
         return ResponseEntity.ok().body(hm);
     }
 

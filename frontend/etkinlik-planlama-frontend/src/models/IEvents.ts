@@ -23,6 +23,9 @@ export interface IEventDetail {
   description: string
   id: number
   isFavorite: boolean
+  isParticipant?: boolean
+  isJoined?: boolean
+  joined?: boolean
   location: string
   ownerId: number
   ownerName: string

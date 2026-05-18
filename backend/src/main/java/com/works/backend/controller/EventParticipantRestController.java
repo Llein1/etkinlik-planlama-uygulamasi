@@ -21,6 +21,11 @@ public class EventParticipantRestController {
         return eventParticipantService.join(joinEventRequestDto);
     }
 
+    @DeleteMapping("leave/{eventId}")
+    public ResponseEntity leave(@PathVariable Long eventId) {
+        return eventParticipantService.leave(eventId);
+    }
+
     @GetMapping("list/{eventId}")
     public ResponseEntity list(@PathVariable Long eventId) {
         return eventParticipantService.listParticipants(eventId);

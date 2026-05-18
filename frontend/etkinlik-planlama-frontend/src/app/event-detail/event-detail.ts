@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { IEventDetail } from '../../models/IEvents';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../shared/api-url';
 import { TrDatePipe } from '../shared/tr-date.pipe';
@@ -19,7 +19,7 @@ interface ParticipantSummary {
 
 @Component({
   selector: 'app-event-detail',
-  imports: [TrDatePipe, TrTimePipe, FavoriteComponent, NgIf],
+  imports: [TrDatePipe, TrTimePipe, FavoriteComponent, NgIf, RouterLink],
   templateUrl: './event-detail.html',
   styleUrl: './event-detail.css',
 })
@@ -32,6 +32,9 @@ export class EventDetail {
   participantsNotice = signal<string | null>(null);
   participantsModalOpen = signal<boolean>(false);
   joining = signal<boolean>(false);
+  leaving = signal<boolean>(false);
+  leaveConfirmOpen = signal<boolean>(false);
+  private _participantsRequestSeq = 0;
   
 
   constructor(
@@ -54,13 +57,17 @@ export class EventDetail {
       this.participants.set([]);
       this.participantsLoading.set(false);
       this.participantsModalOpen.set(false);
+      this.leaveConfirmOpen.set(false);
       this.loading.set(true);
       this.participantsNotice.set(null);
+      this.joining.set(false);
+      this.leaving.set(false);
 
       this.http.get<IEventDetail>(apiUrl(`/event/detail/${id}`), { withCredentials: true }).subscribe({
         next: (response) => {
           this.eventItem.set(response);
           this.loading.set(false);
+          this.refreshParticipationState(response.id);
         },
         error: (error) => {
           this.loading.set(false);
@@ -73,7 +80,7 @@ export class EventDetail {
 
   joinEvent() {
     const event = this.eventItem();
-    if (!event || this.joining()) {
+    if (!event || this.joining() || this.isParticipant(event)) {
       return;
     }
 
@@ -85,17 +92,106 @@ export class EventDetail {
         const current = this.eventItem();
         if (current) {
           const newCount = (current.participantCount || 0) + 1;
-          this.eventItem.set({ ...current, participantCount: newCount });
+          this.eventItem.set({ ...current, participantCount: newCount, isParticipant: true });
         }
-        // If modal is open, clear cached participants so user can reload
         if (this.participantsModalOpen()) {
-          this.participants.set([]);
+          // Optimistically add current user to the participants list so UI updates immediately
+          const me = this.getCurrentParticipant();
+          if (me) {
+            const list = this.participants();
+            const exists = list.some(p => (p.id && me.id && p.id === me.id) || (p.email && me.email && p.email.toLowerCase() === me.email.toLowerCase()));
+            if (!exists) {
+              this.participants.set([...(list || []), me]);
+            }
+          }
+          // still trigger a reload so server-canonical list replaces optimistic entry when ready
+          this.loadParticipants(event.id);
         }
         this.joining.set(false);
       },
       error: (err) => {
         this.joining.set(false);
         this.notify.error('Etkinliğe katılırken bir hata oluştu.');
+      }
+    });
+  }
+
+  leaveEvent() {
+    const event = this.eventItem();
+    if (!event || this.leaving() || !this.isParticipant(event)) {
+      return;
+    }
+
+    this.leaveConfirmOpen.set(true);
+    try {
+      document.body.classList.add('modal-open');
+    } catch (e) {
+      console.error('Failed to add modal-open:', e);
+    }
+  }
+
+  closeLeaveConfirmModal() {
+    this.leaveConfirmOpen.set(false);
+    try {
+      if (!this.participantsModalOpen()) {
+        document.body.classList.remove('modal-open');
+      }
+    } catch (e) {
+      console.error('Failed to remove modal-open:', e);
+    }
+  }
+
+  confirmLeaveEvent() {
+    const event = this.eventItem();
+    if (!event || this.leaving() || !this.isParticipant(event)) {
+      return;
+    }
+
+    this.leaving.set(true);
+    this.leaveConfirmOpen.set(false);
+    this.http.delete<any>(apiUrl(`/participant/leave/${event.id}`), { withCredentials: true }).subscribe({
+      next: () => {
+        this.notify.success('Etkinlikten ayrıldın.');
+        const current = this.eventItem();
+        if (current) {
+          const newCount = Math.max((current.participantCount || 0) - 1, 0);
+          this.eventItem.set({ ...current, participantCount: newCount, isParticipant: false });
+        }
+
+        if (this.participantsModalOpen()) {
+          // Optimistically remove current user from participants list
+          const me = this.getCurrentParticipant();
+          if (me) {
+            const filtered = this.participants().filter(p => {
+              if (p.id && me.id) return p.id !== me.id;
+              if (p.email && me.email) return p.email?.toLowerCase() !== me.email?.toLowerCase();
+              return this.getParticipantLabel(p).trim().toLowerCase() !== this.getParticipantLabel(me).trim().toLowerCase();
+            });
+            this.participants.set(filtered);
+          }
+          // reload to sync with server
+          this.loadParticipants(event.id);
+        }
+
+        this.leaving.set(false);
+        try {
+          if (!this.participantsModalOpen()) {
+            document.body.classList.remove('modal-open');
+          }
+        } catch (e) {
+          console.error('Failed to remove modal-open:', e);
+        }
+      },
+      error: () => {
+        this.leaving.set(false);
+        this.notify.error('Etkinlikten ayrılırken bir hata oluştu.');
+        try {
+          if (!this.participantsModalOpen()) {
+            document.body.classList.remove('modal-open');
+          }
+        } catch (e) {
+          console.error('Failed to remove modal-open:', e);
+        }
       }
     });
   }
@@ -122,17 +218,17 @@ export class EventDetail {
     } catch (e) { console.error('Failed to add modal-open:', e); }
     this.participantsNotice.set(null);
 
-    if (this.participants().length > 0 || this.participantsLoading()) {
-      return;
-    }
-
+    // Always reload the participants list when the modal opens to avoid stale data
+    this.participants.set([]);
     this.loadParticipants(event.id);
   }
 
   closeParticipantsModal() {
     this.participantsModalOpen.set(false);
     try { 
-      document.body.classList.remove('modal-open');
+      if (!this.leaveConfirmOpen()) {
+        document.body.classList.remove('modal-open');
+      }
     } catch (e) { console.error('Failed to remove modal-open:', e); }
   }
 
@@ -172,6 +268,60 @@ export class EventDetail {
     return 'Yayında';
   }
 
+  isParticipant(event: IEventDetail | null | undefined): boolean {
+    return Boolean(event?.isParticipant || event?.isJoined || event?.joined);
+  }
+
+  private refreshParticipationState(eventId: number) {
+    const currentUserId = localStorage.getItem('id');
+    const currentUserEmail = localStorage.getItem('email')?.trim().toLowerCase();
+    const currentUserName = localStorage.getItem('name')?.trim().toLowerCase();
+
+    if (!currentUserId && !currentUserEmail && !currentUserName) {
+      return;
+    }
+
+    this.http.get<any>(apiUrl(`/participant/list/${eventId}`), { withCredentials: true }).subscribe({
+      next: (response) => {
+        const participants = this.extractParticipants(response);
+        const isCurrentUserParticipant = participants.some(participant => {
+          const participantId = participant.id?.toString();
+          const participantEmail = participant.email?.trim().toLowerCase();
+          const participantName = this.getParticipantLabel(participant).trim().toLowerCase();
+
+          return Boolean(
+            (currentUserId && participantId === currentUserId) ||
+            (currentUserEmail && participantEmail === currentUserEmail) ||
+            (currentUserName && participantName === currentUserName)
+          );
+        });
+
+        const current = this.eventItem();
+        if (current && isCurrentUserParticipant) {
+          this.eventItem.set({ ...current, isParticipant: true });
+        }
+      },
+      error: () => {
+        // Leave the detail response as-is when the participant list cannot be read.
+      },
+    });
+  }
+
+  private getCurrentParticipant(): ParticipantSummary | null {
+    const id = localStorage.getItem('id');
+    const email = localStorage.getItem('email')?.trim();
+    const name = localStorage.getItem('name')?.trim();
+
+    if (!id && !email && !name) return null;
+
+    const participant: ParticipantSummary = {};
+    if (id) participant.id = Number(id);
+    if (email) participant.email = email;
+    if (name) participant.fullName = name;
+
+    return participant;
+  }
+
   getParticipantLabel(participant: ParticipantSummary): string {
     return participant.fullName || participant.name || participant.email || 'İsimsiz katılımcı';
   }
@@ -189,8 +339,13 @@ export class EventDetail {
 
   private loadParticipants(eventId: number) {
     this.participantsLoading.set(true);
+    const reqId = ++this._participantsRequestSeq;
     this.http.get<any>(apiUrl(`/participant/list/${eventId}`), { withCredentials: true }).subscribe({
       next: (response) => {
+        // ignore if a newer request was started after this one
+        if (reqId !== this._participantsRequestSeq) {
+          return;
+        }
         this.participants.set(this.extractParticipants(response));
         this.participantsLoading.set(false);
 
@@ -202,6 +357,9 @@ export class EventDetail {
         }
       },
       error: () => {
+        if (reqId !== this._participantsRequestSeq) {
+          return;
+        }
         this.participants.set([]);
         this.participantsLoading.set(false);
         const current = this.eventItem();

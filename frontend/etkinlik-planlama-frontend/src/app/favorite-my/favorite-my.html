@@ -60,15 +60,15 @@
             <div class="event-my-card__body">
               <div class="event-my-card__info-row">
                 <span>Konum</span>
-                <strong>{{ item.location }}</strong>
+                <strong class="event-my-card__description-text">{{ item.location }}</strong>
               </div>
               <div class="event-my-card__info-row">
-                <span>Sahip</span>
-                <strong>{{ item.ownerName }}</strong>
+                <span>Oluşturan</span>
+                <strong class="event-my-card__description-text">{{ item.ownerName }}</strong>
               </div>
               <div class="event-my-card__info-row">
-                <span>Durum</span>
-                <strong>{{ getStatusLabel(item.status) }}</strong>
+                <span>Açıklama</span>
+                <strong class="event-my-card__description-text">{{ item.description }}</strong>
               </div>
             </div>
 

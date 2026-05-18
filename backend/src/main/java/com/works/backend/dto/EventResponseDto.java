@@ -13,6 +13,7 @@ public class EventResponseDto {
     LocalDate date;
     LocalTime time;
     String location;
+    String description;
     String category;
     EventStatus status;
     Long ownerId;

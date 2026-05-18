@@ -263,6 +263,17 @@
   color: var(--color-dark);
 }
 
+.event-my-card__description-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.45;
+  max-height: 2.9em;
+}
+
 .event-my-card__footer {
   margin-top: auto;
 }

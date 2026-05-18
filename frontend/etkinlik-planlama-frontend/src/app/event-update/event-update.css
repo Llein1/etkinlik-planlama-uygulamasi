@@ -38,6 +38,186 @@
 	border-color: var(--color-gray-light);
 }
 
+/* Picker styles (same as event-create) */
+.event-create__picker-trigger {
+	background: var(--color-white);
+	border: 1px solid var(--color-gray-light);
+	border-radius: 0.75rem;
+	padding: 0.7rem 0.95rem;
+	cursor: pointer;
+	box-shadow: none;
+	gap: 0.75rem;
+	transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.event-create__picker-trigger:hover,
+.event-create__picker-trigger:focus {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 0.15rem rgba(220, 41, 30, 0.12);
+	outline: none;
+}
+
+.event-create__picker-panel {
+	position: absolute;
+	top: calc(100% + 0.5rem);
+	left: 0;
+	right: 0;
+	z-index: 20;
+	border-radius: 1rem;
+	overflow: hidden;
+	background: var(--color-white);
+	border: 1px solid rgba(220, 41, 30, 0.12);
+	box-shadow: var(--shadow-soft);
+}
+
+.event-create__picker-panel--time {
+	max-width: 22rem;
+	margin-left: auto;
+}
+
+.event-create__picker-nav {
+	color: var(--color-primary);
+	border-color: rgba(220, 41, 30, 0.18);
+	background: var(--color-white);
+}
+
+.event-create__picker-nav:hover,
+.event-create__picker-nav:focus {
+	color: var(--color-white);
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 0.15rem rgba(220, 41, 30, 0.12);
+}
+
+.event-create__picker-action {
+	color: var(--color-primary);
+	font-weight: 600;
+}
+
+.event-create__picker-action:hover,
+.event-create__picker-action:focus {
+	color: var(--color-primary-dark);
+	text-decoration: underline;
+}
+
+.event-create__calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 0.35rem;
+}
+
+.event-create__weekday {
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--color-gray);
+	text-align: center;
+	padding-bottom: 0.25rem;
+}
+
+.event-create__day {
+	border: 1px solid transparent;
+	border-radius: 0.75rem;
+	background: var(--color-surface-soft);
+	color: var(--color-dark);
+	height: 2.5rem;
+	font-weight: 600;
+	transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.event-create__day:hover:not(:disabled) {
+	background: var(--color-primary-light);
+	border-color: rgba(220, 41, 30, 0.18);
+	color: var(--color-primary-dark);
+	transform: translateY(-1px);
+}
+
+.event-create__day--muted {
+	color: var(--color-gray-medium);
+	background: rgba(214, 215, 215, 0.18);
+}
+
+.event-create__day--today {
+	border-color: rgba(220, 41, 30, 0.38);
+}
+
+.event-create__day--selected {
+	background: var(--color-primary) !important;
+	border-color: var(--color-primary) !important;
+	color: var(--color-white) !important;
+	box-shadow: 0 10px 24px rgba(220, 41, 30, 0.22);
+}
+
+/* Time dropdown styles */
+.event-create__time-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+	align-items: start;
+}
+
+.event-create__time-field {
+	position: relative;
+}
+
+.event-create__time-trigger {
+	background: var(--color-white);
+	border: 1px solid var(--color-gray-light);
+	border-radius: 0.75rem;
+	padding: 0.7rem 0.85rem;
+	box-shadow: none;
+	text-align: left;
+	gap: 0.5rem;
+}
+
+.event-create__time-trigger:hover,
+.event-create__time-trigger:focus {
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 0.15rem rgba(220, 41, 30, 0.12);
+	outline: none;
+}
+
+.event-create__time-menu {
+	position: absolute;
+	top: calc(100% + 0.4rem);
+	left: 0;
+	right: 0;
+	z-index: 30;
+	max-height: 14rem;
+	overflow: auto;
+	border-radius: 0.85rem;
+	border: 1px solid rgba(220, 41, 30, 0.16);
+	background: var(--color-white);
+	box-shadow: 0 18px 36px rgba(30, 31, 31, 0.12);
+	padding: 0.25rem;
+}
+
+.event-create__time-menu-item {
+	display: block;
+	width: 100%;
+	border: 0;
+	border-radius: 0.65rem;
+	background: transparent;
+	color: var(--color-dark);
+	font-weight: 600;
+	text-align: left;
+	padding: 0.45rem 0.7rem;
+}
+
+.event-create__time-menu-item:hover {
+	background: var(--color-primary-light);
+	color: var(--color-primary-dark);
+}
+
+.event-create__time-menu-item--selected {
+	background: var(--color-primary) !important;
+	color: var(--color-white) !important;
+}
+
+.event-create__time-menu-item:focus,
+.event-create__time-trigger:focus {
+	outline: none;
+}
+
 .event-update .form-control:focus,
 .event-update .form-select:focus {
 	border-color: var(--color-primary);
