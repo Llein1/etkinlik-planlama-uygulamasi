@@ -1,15 +1,26 @@
 <section class="event-update container py-5">
 	<div class="row justify-content-center">
 		<div class="col-12 col-lg-8">
-			<div class="d-flex align-items-center justify-content-between mb-4">
+			<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
 				<div>
 					<p class="event-update__eyebrow text-uppercase fw-semibold small mb-2">Etkinlik Güncelle</p>
 					<h1 class="h3 fw-bold mb-0">Etkinliği Düzenle</h1>
 				</div>
-				<a class="btn btn-outline-secondary icon-link icon-link-hover app-icon-link-red" routerLink="/event-my">
-					<i class="bi bi-arrow-left" aria-hidden="true"></i>
-					Geri Dön
-				</a>
+				<div class="d-flex flex-wrap align-items-center gap-2">
+					<button
+						type="button"
+						class="btn event-update__delete-btn d-inline-flex align-items-center gap-2"
+						(click)="openDeleteConfirm()"
+						[disabled]="submitting || deleting"
+					>
+						<i class="bi bi-trash" aria-hidden="true"></i>
+						<span>Etkinliği Sil</span>
+					</button>
+					<a class="btn btn-outline-secondary icon-link icon-link-hover app-icon-link-red" routerLink="/event-my">
+						<i class="bi bi-arrow-left" aria-hidden="true"></i>
+						Geri Dön
+					</a>
+				</div>
 			</div>
 
 				<div class="card border-0 shadow-sm">
@@ -197,6 +208,30 @@
 								</div>
 
 								<div class="col-12">
+									<div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+										<label class="form-label fw-semibold mb-0">Etkinlik Durumu</label>
+										<span class="event-update__status-pill">{{ selectedStatusLabel }}</span>
+									</div>
+									<div class="btn-group event-update__status-group w-100" role="group" aria-label="Etkinlik durumunu seç">
+										@for (status of statusOptions; track status.value) {
+											<input
+												type="radio"
+												class="btn-check"
+												formControlName="status"
+												name="status"
+												[id]="'status-' + status.value"
+												[value]="status.value"
+												autocomplete="off"
+											/>
+											<label class="btn event-update__status-option" [class.event-update__status-option--published]="status.value === 'published'" [class.event-update__status-option--paused]="status.value === 'paused'" [class.event-update__status-option--archived]="status.value === 'archived'" [for]="'status-' + status.value">
+												{{ status.label }}
+											</label>
+										}
+									</div>
+									<div class="form-text event-update__status-hint mt-2">Arşivlenen etkinlikler yeniden yayına alınamaz.</div>
+								</div>
+
+								<div class="col-12">
 									<label class="form-label fw-semibold" for="description">Açıklama</label>
 									<textarea
 										id="description"
@@ -215,10 +250,10 @@
 							</div>
 
 							<div class="d-flex flex-column flex-sm-row gap-3 mt-4">
-								<button type="submit" class="btn btn-primary px-4" [disabled]="submitting || loading">
+									<button type="submit" class="btn btn-primary px-4" [disabled]="submitting">
 									{{ submitting ? 'Kaydediliyor...' : 'Düzenle' }}
 								</button>
-								<button type="button" class="btn btn-outline-secondary" (click)="resetForm()" [disabled]="submitting || loading">
+									<button type="button" class="btn btn-outline-secondary" (click)="resetForm()" [disabled]="submitting">
 									Değişiklikleri Geri Al
 								</button>
 							</div>
@@ -228,3 +263,57 @@
 		</div>
 	</div>
 </section>
+
+<div
+	*ngIf="showArchiveConfirmModal"
+	class="modal fade show d-block event-update__archive-modal-backdrop"
+	tabindex="-1"
+	aria-modal="true"
+	role="dialog"
+	(click)="closeArchiveConfirm()"
+>
+	<div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+		<div class="modal-content event-update__archive-modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Arşivleme Onayı</h5>
+				<button type="button" class="btn-close" aria-label="Kapat" (click)="closeArchiveConfirm()"></button>
+			</div>
+			<div class="modal-body">
+				<p class="mb-0">Arşivlenen etkinlikler bir daha yayına alınamaz, arşivlemek istediğinize emin misiniz?</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" (click)="closeArchiveConfirm()">Vazgeç</button>
+				<button type="button" class="btn btn-primary" (click)="confirmArchiveAndSubmit()" [disabled]="submitting">
+					Arşivle
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div
+	*ngIf="showDeleteConfirmModal"
+	class="modal fade show d-block event-update__delete-modal-backdrop"
+	tabindex="-1"
+	aria-modal="true"
+	role="dialog"
+	(click)="closeDeleteConfirm()"
+>
+	<div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+		<div class="modal-content event-update__delete-modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Etkinlik Silme Onayı</h5>
+				<button type="button" class="btn-close" aria-label="Kapat" (click)="closeDeleteConfirm()"></button>
+			</div>
+			<div class="modal-body">
+				<p class="mb-0">Etkinliği silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" (click)="closeDeleteConfirm()">Vazgeç</button>
+				<button type="button" class="btn btn-danger" (click)="confirmDeleteEvent()" [disabled]="deleting">
+					Etkinliği Sil
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

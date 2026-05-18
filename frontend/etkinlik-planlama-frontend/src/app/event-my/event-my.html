@@ -48,41 +48,55 @@
 		<div class="row g-4">
 			@for (item of eventArray(); track item.id) {
 				<div class="col-12 col-md-6 col-xl-4">
-					<article class="event-my-card h-100">
-						<div class="event-my-card__top">
-							<div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-								<span class="event-my-card__category">{{ item.category }}</span>
-								<span class="event-my-card__status event-my-card__status--{{ getStatusVariant(item.status) }}">{{ getStatusLabel(item.status) }}</span>
-							</div>
+			<article class="event-my-card">
+				<div class="event-my-card__header mb-3">
+					<div class="event-my-card__chips d-flex flex-wrap gap-2">
+						<span class="event-my-card__category">{{ item.category }}</span>
+						<span class="event-my-card__status event-my-card__status--{{ getStatusVariant(item.status) }}">
+							{{ getStatusLabel(item.status) }}
+						</span>
+					</div>
+				</div>
 
-							<h2 class="event-my-card__title mb-3">{{ item.title }}</h2>
+				<div class="event-my-card__body mb-3">
+					<h2 class="event-my-card__title mb-2">{{ item.title }}</h2>
+					<p class="event-my-card__owner mb-3">
+						<i class="bi bi-person-circle" aria-hidden="true"></i>
+						{{ item.ownerName }}
+					</p>
 
-							<p class="event-my-card__datetime mb-0">{{ item.date | trDate }} · {{ item.time | trTime }}</p>
+					<div class="event-my-card__meta">
+						<div class="event-my-card__meta-item">
+							<i class="bi bi-calendar-event" aria-hidden="true"></i>
+							<span>{{ item.date | trDate }}</span>
 						</div>
-
-						<div class="event-my-card__body">
-							<div class="event-my-card__info-row">
-								<span>Konum</span>
-								<strong class="event-my-card__description-text">{{ item.location }}</strong>
-							</div>
-							<div class="event-my-card__info-row">
-								<span>Oluşturan</span>
-								<strong class="event-my-card__description-text">{{ item.ownerName }}</strong>
-							</div>
-							<div class="event-my-card__info-row">
-								<span>Açıklama</span>
-								<strong class="event-my-card__description-text">{{ item.description }}</strong>
-							</div>
+						<div class="event-my-card__meta-item">
+							<i class="bi bi-clock" aria-hidden="true"></i>
+							<span>{{ item.time | trTime }}</span>
 						</div>
-
+						<div class="event-my-card__meta-item">
+							<i class="bi bi-geo-alt" aria-hidden="true"></i>
+							<span>{{ item.location }}</span>
+						</div>
+					</div>
+				</div>
 						<div class="event-my-card__footer d-flex align-items-center justify-content-between gap-3">
 							<app-favorite [eventId]="item.id" [isFavorite]="item.isFavorite" (toggled)="onFavoriteToggled(item, $event)"></app-favorite>
-														<a [routerLink]="['/event/update', item.id]" [state]="{ event: item }" class="btn btn-sm px-3 event-my-edit">
-															<span class="event-my-edit__icon" aria-hidden="true">
-																<i class="bi bi-pencil-square" aria-hidden="true"></i>
-															</span>
-															<span class="event-my-edit__label">Düzenle</span>
-														</a>
+							@if (isArchivedStatus(item.status)) {
+								<button type="button" class="btn btn-sm px-3 event-my-edit event-my-edit--disabled" disabled aria-disabled="true">
+									<span class="event-my-edit__icon" aria-hidden="true">
+										<i class="bi bi-pencil-square" aria-hidden="true"></i>
+									</span>
+									<span class="event-my-edit__label">Düzenle</span>
+								</button>
+							} @else {
+								<a [routerLink]="['/event/update', item.id]" [state]="{ event: item }" class="btn btn-sm px-3 event-my-edit">
+									<span class="event-my-edit__icon" aria-hidden="true">
+										<i class="bi bi-pencil-square" aria-hidden="true"></i>
+									</span>
+									<span class="event-my-edit__label">Düzenle</span>
+								</a>
+							}
 						</div>
 					</article>
 				</div>

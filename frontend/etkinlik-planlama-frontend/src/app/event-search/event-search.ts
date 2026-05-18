@@ -1,13 +1,16 @@
 import { Component, signal } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { FavoriteComponent } from '../shared/favorite/favorite';
 import { Event, IEvents } from '../../models/IEvents';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../shared/api-url';
+import { TrDatePipe } from '../shared/tr-date.pipe';
+import { TrTimePipe } from '../shared/tr-time.pipe';
 
 @Component({
   selector: 'app-event-search',
-  imports: [RouterModule, FavoriteComponent],
+  imports: [CommonModule, RouterModule, FavoriteComponent, TrDatePipe, TrTimePipe],
   templateUrl: './event-search.html',
   styleUrl: './event-search.css',
 })
@@ -25,16 +28,8 @@ export class EventSearch {
       const query = (params['q'] ?? '').toString();
       this.searchQuery.set(query);
       console.log('Search query from URL:', query);
+      this.searchEvents(0);
     });
-  }
-
-  onFavoriteToggled(item: Event, newState: boolean) {
-    const updated = this.eventArray().map(ev => ev.id === item.id ? { ...ev, isFavorite: newState } : ev);
-    this.eventArray.set(updated);
-  }
-
-  ngOnInit() {
-    this.searchEvents(0);
   }
 
   searchEvents(page: number = 0) {
@@ -57,4 +52,26 @@ export class EventSearch {
     });
   }
 
+  onFavoriteToggled(item: Event, newState: boolean) {
+    const updated = this.eventArray().map(ev => ev.id === item.id ? { ...ev, isFavorite: newState } : ev);
+    this.eventArray.set(updated);
+  }
+
+  getStatusLabel(status: string): string {
+    const statusMap: Record<string, string> = {
+      'PUBLISHED': 'Yayında',
+      'STOPPED': 'Yayın Durduruldu',
+      'ARCHIVED': 'Arşivlendi'
+    };
+    return statusMap[status] || status;
+  }
+
+  getStatusVariant(status: string): string {
+    const variantMap: Record<string, string> = {
+      'PUBLISHED': 'published',
+      'STOPPED': 'stopped',
+      'ARCHIVED': 'archived'
+    };
+    return variantMap[status] || 'published';
+  }
 }

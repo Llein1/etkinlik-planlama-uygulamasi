@@ -82,4 +82,8 @@ export class EventMy {
 
     return 'Yayında';
   }
+
+  isArchivedStatus(status: string): boolean {
+    return status.toLowerCase().includes('archived');
+  }
 }

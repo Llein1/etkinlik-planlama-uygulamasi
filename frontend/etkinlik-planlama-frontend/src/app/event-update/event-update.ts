@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, ElementRef, HostListener, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { timeout } from 'rxjs';
@@ -9,13 +9,19 @@ import { EVENT_CATEGORY_OPTIONS, OTHER_CATEGORY_OPTION, resolveCategoryValue, sp
 import { apiUrl } from '../shared/api-url';
 import { NotificationService } from '../shared/notification.service';
 
+const EVENT_STATUS_OPTIONS = [
+	{ value: 'published', label: 'Yayında' },
+	{ value: 'paused', label: 'Duraklatıldı' },
+	{ value: 'archived', label: 'Arşivle' },
+];
+
 @Component({
     selector: 'app-event-update',
     imports: [ReactiveFormsModule, FormsModule, CommonModule, RouterModule],
 	templateUrl: './event-update.html',
 	styleUrl: './event-update.css',
 })
-export class EventUpdate {
+export class EventUpdate implements OnDestroy {
 	private http = inject(HttpClient);
 	private route = inject(ActivatedRoute);
 	private router = inject(Router);
@@ -24,13 +30,17 @@ export class EventUpdate {
 
 	eventForm: FormGroup;
 	submitting = false;
+	deleting = false;
 	loading = true;
+	showArchiveConfirmModal = false;
+	showDeleteConfirmModal = false;
 	isDatePickerOpen = false;
 	isTimePickerOpen = false;
 	isHourListOpen = false;
 	isMinuteListOpen = false;
 	eventId: number | null = null;
 	categories = EVENT_CATEGORY_OPTIONS;
+	statusOptions = EVENT_STATUS_OPTIONS;
 	monthNames = [
 		'Ocak',
 		'Şubat',
@@ -60,6 +70,7 @@ export class EventUpdate {
 			location: ['', [Validators.required, Validators.minLength(2)]],
 			category: ['', [Validators.required]],
 			customCategory: [''],
+			status: ['published', [Validators.required]],
 			description: ['', [Validators.required, Validators.minLength(10)]],
 		});
 
@@ -103,6 +114,52 @@ export class EventUpdate {
 		this.isTimePickerOpen = false;
 		this.isHourListOpen = false;
 		this.isMinuteListOpen = false;
+	}
+
+	openArchiveConfirm() {
+		this.showArchiveConfirmModal = true;
+		this.syncModalBodyState();
+	}
+
+	closeArchiveConfirm() {
+		this.showArchiveConfirmModal = false;
+		this.syncModalBodyState();
+	}
+
+	openDeleteConfirm() {
+		this.showDeleteConfirmModal = true;
+		this.syncModalBodyState();
+	}
+
+	closeDeleteConfirm() {
+		this.showDeleteConfirmModal = false;
+		this.syncModalBodyState();
+	}
+
+	confirmArchiveAndSubmit() {
+		this.closeArchiveConfirm();
+		this.submitEvent(true);
+	}
+
+	confirmDeleteEvent() {
+		if (this.eventId === null || this.deleting || this.submitting) {
+			return;
+		}
+
+		this.deleting = true;
+		this.closeDeleteConfirm();
+
+		this.http.delete(apiUrl(`/event/deleteOne/${this.eventId}`), { withCredentials: true }).subscribe({
+			next: () => {
+				this.deleting = false;
+				this.notificationService.success('Etkinlik başarıyla silindi.');
+				this.router.navigate(['/event-my']);
+			},
+			error: (error) => {
+				this.deleting = false;
+				this.notificationService.error('Etkinlik silinemedi: ' + (error.error?.message || 'Bilinmeyen hata'));
+			},
+		});
 	}
 
 	toggleHourList() {
@@ -233,6 +290,34 @@ export class EventUpdate {
 		return this.eventForm.get('category')?.value === OTHER_CATEGORY_OPTION;
 	}
 
+	get selectedStatus() {
+		return this.normalizeStatusValue(this.eventForm.get('status')?.value as string);
+	}
+
+	get selectedStatusLabel() {
+		return this.statusOptions.find((option) => option.value === this.selectedStatus)?.label ?? 'Yayında';
+	}
+
+	get isArchiveStatusSelected() {
+		return this.selectedStatus === 'archived';
+	}
+
+	private normalizeStatusValue(value: string) {
+		return (value || 'published').toLowerCase();
+	}
+
+	private getStatusEndpoint(status: string) {
+		switch (this.normalizeStatusValue(status)) {
+			case 'paused':
+				return '/event/pause';
+			case 'archived':
+				return '/event/archive';
+			case 'published':
+			default:
+				return '/event/publish';
+		}
+	}
+
 	private syncCustomCategoryRules() {
 		const categoryControl = this.eventForm.get('category');
 		const customCategoryControl = this.eventForm.get('customCategory');
@@ -278,6 +363,7 @@ export class EventUpdate {
 			time: this.normalizeTimeForInput(eventState.time ?? ''),
 			location: eventState.location ?? '',
 			...splitCategoryValue(eventState.category ?? ''),
+			status: this.normalizeStatusValue(eventState.status ?? 'published'),
 			description: eventState.description ?? '',
 		};
 
@@ -305,6 +391,7 @@ export class EventUpdate {
 					time: this.normalizeTimeForInput(response.time),
 					location: response.location,
 					...splitCategoryValue(response.category),
+					status: this.normalizeStatusValue(response.status),
 					description: response.description,
 				};
 
@@ -336,12 +423,21 @@ export class EventUpdate {
 	}
 
 	onSubmit() {
+		this.submitEvent();
+	}
+
+	private submitEvent(allowArchive = false) {
 		if (this.submitting || this.loading) {
 			return;
 		}
 
 		if (this.eventForm.invalid || this.eventId === null) {
 			this.eventForm.markAllAsTouched();
+			return;
+		}
+
+		if (!allowArchive && this.isArchiveStatusSelected) {
+			this.openArchiveConfirm();
 			return;
 		}
 
@@ -362,14 +458,37 @@ export class EventUpdate {
 			return;
 		}
 
+		const nextStatus = this.normalizeStatusValue(this.eventForm.value.status);
+		const previousStatus = this.normalizeStatusValue(this.originalFormSnapshot?.['status'] ?? 'published');
+		const shouldUpdateStatus = nextStatus !== previousStatus;
+
 		this.http.put(apiUrl('/event/update'), eventData, { withCredentials: true }).subscribe({
 			next: () => {
-				this.submitting = false;
-				this.notificationService.success('Etkinlik başarıyla güncellendi.');
-				this.router.navigate(['/event-my']);
+				if (!shouldUpdateStatus) {
+					this.submitting = false;
+					this.closeArchiveConfirm();
+					this.notificationService.success('Etkinlik başarıyla güncellendi.');
+					this.router.navigate(['/event-my']);
+					return;
+				}
+
+				this.http.put(apiUrl(`${this.getStatusEndpoint(nextStatus)}/${eventData.id}`), {}, { withCredentials: true }).subscribe({
+					next: () => {
+						this.submitting = false;
+						this.closeArchiveConfirm();
+						this.notificationService.success('Etkinlik başarıyla güncellendi.');
+						this.router.navigate(['/event-my']);
+					},
+					error: (error) => {
+						this.submitting = false;
+						this.closeArchiveConfirm();
+						this.notificationService.error('Etkinlik durumu güncellenemedi: ' + (error.error?.message || 'Bilinmeyen hata'));
+					},
+				});
 			},
 			error: (error) => {
 				this.submitting = false;
+				this.closeArchiveConfirm();
 				this.notificationService.error('Etkinlik güncellenemedi: ' + (error.error?.message || 'Bilinmeyen hata'));
 			},
 		});
@@ -380,9 +499,28 @@ export class EventUpdate {
 			return;
 		}
 
+		this.closeArchiveConfirm();
+		this.closeDeleteConfirm();
 		this.eventForm.reset(this.originalFormSnapshot);
 		this.eventForm.markAsPristine();
 		this.eventForm.markAsUntouched();
 		this.loading = false;
+	}
+
+	ngOnDestroy() {
+		this.closeArchiveConfirm();
+		this.closeDeleteConfirm();
+	}
+
+	private syncModalBodyState() {
+		try {
+			if (this.showArchiveConfirmModal || this.showDeleteConfirmModal) {
+				document.body.classList.add('modal-open');
+			} else {
+				document.body.classList.remove('modal-open');
+			}
+		} catch (e) {
+			console.error('Failed to sync modal body state:', e);
+		}
 	}
 }

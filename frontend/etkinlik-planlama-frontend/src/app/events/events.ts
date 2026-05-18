@@ -22,7 +22,6 @@ export class Events implements AfterViewInit, OnDestroy {
   eventArray = signal<Event[]>([]);
   featuredEvents = signal<Event[]>([]);
   selectedFeaturedIndex = signal<number>(0);
-  selectedFeaturedEvent = signal<Event | null>(null);
   pages = signal<number[]>([]);
   activePage = signal<number>(0);
   loading = signal<boolean>(false);
@@ -56,7 +55,6 @@ export class Events implements AfterViewInit, OnDestroy {
         if (page === 0 && this.featuredEvents().length === 0) {
           const randomFeatured = this.getRandomEvents(response.content, 4);
           this.featuredEvents.set(randomFeatured);
-          this.selectedFeaturedEvent.set(randomFeatured[0] ?? null);
           this.selectedFeaturedIndex.set(0);
         }
 
@@ -75,7 +73,6 @@ export class Events implements AfterViewInit, OnDestroy {
 
   selectFeaturedSlide(index: number) {
     this.selectedFeaturedIndex.set(index);
-    this.selectedFeaturedEvent.set(this.featuredEvents()[index] ?? null);
     if (this._swiper?.slideTo) {
       this._swiper.slideTo(index);
     }
@@ -86,10 +83,6 @@ export class Events implements AfterViewInit, OnDestroy {
     this.eventArray.set(updated);
     const updatedFeatured = this.featuredEvents().map(ev => ev.id === item.id ? { ...ev, isFavorite: newState } : ev);
     this.featuredEvents.set(updatedFeatured);
-    const selected = this.selectedFeaturedEvent();
-    if (selected?.id === item.id) {
-      this.selectedFeaturedEvent.set({ ...selected, isFavorite: newState });
-    }
   }
 
   getStatusVariant(status: string): string {
@@ -177,7 +170,6 @@ export class Events implements AfterViewInit, OnDestroy {
           slideChange: (swiper: any) => {
             const activeIndex = swiper.activeIndex ?? 0;
             this.selectedFeaturedIndex.set(activeIndex);
-            this.selectedFeaturedEvent.set(this.featuredEvents()[activeIndex] ?? null);
           }
         }
       });
@@ -185,7 +177,6 @@ export class Events implements AfterViewInit, OnDestroy {
       this._swiper.on?.('slideChange', () => {
         const activeIndex = this._swiper?.activeIndex ?? 0;
         this.selectedFeaturedIndex.set(activeIndex);
-        this.selectedFeaturedEvent.set(this.featuredEvents()[activeIndex] ?? null);
       });
 
       this.scheduleHeroRefresh();
@@ -213,6 +204,5 @@ export class Events implements AfterViewInit, OnDestroy {
     this._swiper.pagination?.update?.();
     this._swiper.navigation?.update?.();
     this._swiper.slideTo?.(this.selectedFeaturedIndex(), 0, false);
-    this.selectedFeaturedEvent.set(this.featuredEvents()[this.selectedFeaturedIndex()] ?? null);
   }
 }

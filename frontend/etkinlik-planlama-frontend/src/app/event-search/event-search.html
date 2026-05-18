@@ -1,37 +1,110 @@
-<h2>Arama Sonucu ({{ totalElements() }}): {{ searchQuery() }}</h2>
-
-@if (loading()) {
-<div class="text-center" style="position: absolute;">
-    <div class="spinner-border" role="status">
-    <span class="visually-hidden">Loading...</span>
+<section class="event-search-page container py-4 py-lg-5">
+  <div class="event-search-hero mb-4 mb-lg-5">
+    <div class="event-search-hero__copy">
+      <p class="event-search-hero__eyebrow text-uppercase mb-2">Arama Sonucu</p>
+      <h1 class="event-search-hero__title mb-3">{{ searchQuery() }}</h1>
+      <p class="event-search-hero__subtitle">
+        Bulundu:
+        <strong class="event-search-hero__count">{{ totalElements() }} etkinlik</strong>
+      </p>
     </div>
-</div>
-}
 
-<nav aria-label="Page navigation example">
-  <ul class="pagination justify-content-end">
-    @for (page of pages(); track page) {
-        <li class="page-item"><a class="page-link" [class.active]="page === activePage()" role="button" (click)="searchEvents(page)">{{ page + 1 }}</a></li>
-    }
-  </ul>
-</nav>
-
-<div class="row">
-    @for (item of eventArray(); track item.id) {
-        <div class="col-sm-4 mb-3">
-            <div class="card">
-                                <div class="card-body d-flex align-items-center justify-content-between gap-2">
-                                        <div>
-                                            <h5 class="card-title">{{ item.title }}</h5>
-                                            <p class="card-text mb-0">{{ item.category }}</p>
-                                        </div>
-
-                                        <div class="d-flex align-items-center gap-2">
-                                            <app-favorite [eventId]="item.id" [isFavorite]="item.isFavorite" (toggled)="onFavoriteToggled(item, $event)"></app-favorite>
-                                            <a [routerLink]="['/event/detail', item.id]" class="btn btn-primary">Detayları Gör</a>
-                                        </div>
-                                </div>
-            </div>
+    @if (loading()) {
+      <div class="event-search-loading">
+        <div class="spinner-border text-white" role="status">
+          <span class="visually-hidden">Yükleniyor...</span>
         </div>
+      </div>
     }
-</div>
+  </div>
+
+  @if (!loading()) {
+    @if (eventArray().length > 0) {
+      <div class="event-search-content mb-5">
+        <div class="row g-3 g-lg-4">
+          @for (item of eventArray(); track item.id) {
+            <div class="col-12 col-md-6 col-lg-4">
+              <article class="event-search-card">
+                <div class="event-search-card__header mb-3">
+                  <div class="event-search-card__chips d-flex flex-wrap gap-2">
+                    <span class="event-search-card__category">{{ item.category }}</span>
+                    <span class="event-search-card__status event-search-card__status--{{ getStatusVariant(item.status) }}">
+                      {{ getStatusLabel(item.status) }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="event-search-card__body mb-3">
+                  <h2 class="event-search-card__title mb-2">{{ item.title }}</h2>
+                  <p class="event-search-card__owner mb-3">
+                    <i class="bi bi-person-circle" aria-hidden="true"></i>
+                    {{ item.ownerName }}
+                  </p>
+
+                  <div class="event-search-card__meta">
+                    <div class="event-search-card__meta-item">
+                      <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                      <span>{{ item.date | trDate }}</span>
+                    </div>
+                    <div class="event-search-card__meta-item">
+                      <i class="bi bi-clock" aria-hidden="true"></i>
+                      <span>{{ item.time | trTime }}</span>
+                    </div>
+                    <div class="event-search-card__meta-item">
+                      <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                      <span>{{ item.location }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="event-search-card__footer d-flex align-items-center justify-content-between gap-2">
+                  <app-favorite
+                    [eventId]="item.id"
+                    [isFavorite]="item.isFavorite"
+                    (toggled)="onFavoriteToggled(item, $event)"
+                  ></app-favorite>
+                  <a [routerLink]="['/event/detail', item.id]" class="btn btn-sm btn-primary">
+                    Detayları Gör
+                  </a>
+                </div>
+              </article>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (pages().length > 1) {
+        <nav class="event-search-pagination" aria-label="Arama sonuçları sayfalama">
+          <ul class="pagination justify-content-center">
+            @for (page of pages(); track page) {
+              <li class="page-item" [class.active]="page === activePage()">
+                <a
+                  class="page-link"
+                  href="javascript:void(0)"
+                  role="button"
+                  (click)="searchEvents(page)"
+                  [attr.aria-label]="'Sayfa ' + (page + 1)"
+                >
+                  {{ page + 1 }}
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      }
+    } @else {
+      <div class="event-search-empty">
+        <div class="event-search-empty__content text-center">
+          <i class="bi bi-search event-search-empty__icon" aria-hidden="true"></i>
+          <h2 class="event-search-empty__title mb-2">Sonuç Bulunamadı</h2>
+          <p class="event-search-empty__text">
+            "{{ searchQuery() }}" aramasına uygun etkinlik bulunmamaktadır.
+          </p>
+          <a routerLink="/events" class="btn btn-primary btn-sm mt-3">
+            Tüm Etkinlikleri Gör
+          </a>
+        </div>
+      </div>
+    }
+  }
+</section>

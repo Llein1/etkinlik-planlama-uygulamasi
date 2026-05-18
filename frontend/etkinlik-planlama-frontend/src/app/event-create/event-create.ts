@@ -131,16 +131,6 @@ export class EventCreate {
     return cells;
   }
 
-  get calendarWeeks() {
-    const cells = this.calendarCells;
-    const weeks: typeof cells[] = [];
-
-    for (let index = 0; index < cells.length; index += 7) {
-      weeks.push(cells.slice(index, index + 7));
-    }
-
-    return weeks;
-  }
 
   private syncCustomCategoryRules() {
     const categoryControl = this.eventForm.get('category');
@@ -219,12 +209,6 @@ export class EventCreate {
     this.isDatePickerOpen = false;
   }
 
-  selectTime(timeValue: string) {
-    this.eventForm.get('time')?.setValue(timeValue);
-    this.eventForm.get('time')?.markAsTouched();
-    this.isTimePickerOpen = false;
-  }
-
   toggleHourList() {
     this.isHourListOpen = !this.isHourListOpen;
     this.isMinuteListOpen = false;
@@ -289,17 +273,6 @@ export class EventCreate {
     }).format(date);
   }
 
-  private buildTimeOptions(stepMinutes: number) {
-    const options: string[] = [];
-
-    for (let minutes = 0; minutes < 24 * 60; minutes += stepMinutes) {
-      const hours = `${Math.floor(minutes / 60)}`.padStart(2, '0');
-      const remainder = `${minutes % 60}`.padStart(2, '0');
-      options.push(`${hours}:${remainder}`);
-    }
-
-    return options;
-  }
 
   private syncTimeControlsFromForm() {
     const value = (this.eventForm.get('time')?.value as string) || '00:00';
