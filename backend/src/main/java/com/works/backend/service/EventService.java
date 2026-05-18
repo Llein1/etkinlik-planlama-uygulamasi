@@ -20,6 +20,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -144,9 +145,12 @@ public class EventService {
                 .map(event -> toEventResponse(event, favoriteEventIds));
     }
 
-    @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page + '-' + #root.target.getSessionUserId()")
-    public Page<EventResponseDto> search(String q, int page) {
-        Pageable pageable = PageRequest.of(page, 9);
+    @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page + '-' + #sort + '-' + #root.target.getSessionUserId()")
+    public Page<EventResponseDto> search(String q, int page, String sort) {
+        Sort.Direction direction =
+                "desc".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, 9, Sort.by(direction, "date", "time"));
         Set<Long> favoriteEventIds = getFavoriteEventIds(getSessionUser());
         return eventRepository.findByTitleContainsOrDescriptionContainsOrLocationContainsOrCategoryContainsAllIgnoreCase(
                         q, q, q, q, pageable)

@@ -7,6 +7,51 @@
         Bulundu:
         <strong class="event-search-hero__count">{{ totalElements() }} etkinlik</strong>
       </p>
+
+      <div class="event-search-filters d-flex flex-wrap align-items-center gap-3 mt-3">
+        <div class="event-search-filter d-flex align-items-center gap-2">
+          <label class="form-label mb-0">Durum:</label>
+          <div class="event-search-filter__control position-relative" (click)="$event.stopPropagation()">
+            <button
+              class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-2 event-search-filter__button"
+              type="button"
+              (click)="toggleStatusMenu()"
+              [attr.aria-expanded]="statusOpen()"
+            >
+              <span class="event-search-filter__label">{{ statusFilter() === 'PUBLISHED' ? 'Yayında' : (statusFilter() === 'STOPPED' ? 'Yayın Durduruldu' : (statusFilter() === 'ARCHIVED' ? 'Arşivlendi' : 'Tümü')) }}</span>
+              <i class="bi bi-chevron-down event-search-filter__arrow" aria-hidden="true"></i>
+            </button>
+
+            <ul class="dropdown-menu event-search-filter__menu" [class.show]="statusOpen()"
+                [style.top.px]="statusMenuTop()" [style.left.px]="statusMenuLeft()" [style.minWidth.px]="statusMenuWidth()">
+              <li><button class="dropdown-item" type="button" (click)="selectStatus('')">Tümü</button></li>
+              <li><button class="dropdown-item" type="button" (click)="selectStatus('PUBLISHED')">Yayında</button></li>
+              <li><button class="dropdown-item" type="button" (click)="selectStatus('STOPPED')">Yayın Durduruldu</button></li>
+              <li><button class="dropdown-item" type="button" (click)="selectStatus('ARCHIVED')">Arşivlendi</button></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="event-search-sort d-flex align-items-center gap-2">
+          <label class="form-label mb-0">Sırala:</label>
+          <div class="event-search-sort__control position-relative" (click)="$event.stopPropagation()">
+            <button class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-2 event-search-sort__button"
+              type="button"
+              (click)="toggleSortMenu()"
+              [attr.aria-expanded]="sortOpen()">
+              <span class="event-search-sort__label">{{ sort() === 'asc' ? 'Yaklaşan Tarih' : (sort() === 'desc' ? 'Uzak Tarih' : 'Varsayılan') }}</span>
+              <i class="bi bi-chevron-down event-search-sort__arrow" aria-hidden="true"></i>
+            </button>
+
+            <ul class="dropdown-menu event-search-sort__menu" [class.show]="sortOpen()"
+                [style.top.px]="menuTop()" [style.left.px]="menuLeft()" [style.minWidth.px]="menuWidth()">
+              <li><button class="dropdown-item" type="button" (click)="selectSort('')">Varsayılan</button></li>
+              <li><button class="dropdown-item" type="button" (click)="selectSort('asc')">Yaklaşan Tarih</button></li>
+              <li><button class="dropdown-item" type="button" (click)="selectSort('desc')">Uzak Tarih</button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
 
     @if (loading()) {
@@ -74,12 +119,14 @@
       </div>
 
       @if (pages().length > 1) {
-        <nav class="event-search-pagination" aria-label="Arama sonuçları sayfalama">
-          <ul class="pagination justify-content-center">
+        <nav aria-label="Sayfalama" class="app-pagination mb-3">
+          <ul class="pagination justify-content-end flex-wrap gap-2 mb-0">
             @for (page of pages(); track page) {
-              <li class="page-item" [class.active]="page === activePage()">
+              <li class="page-item">
                 <a
                   class="page-link"
+                  [class.active]="page === activePage()"
+                  [attr.aria-current]="page === activePage() ? 'page' : null"
                   href="javascript:void(0)"
                   role="button"
                   (click)="searchEvents(page)"

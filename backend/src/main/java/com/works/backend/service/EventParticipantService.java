@@ -14,6 +14,7 @@ import com.works.backend.repository.EventFavoriteRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import com.works.backend.util.EventStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,10 @@ public class EventParticipantService {
         if (optionalEvent.isEmpty()) {
             Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
             return ResponseEntity.status(404).body(hm);
+        }
+        if (optionalEvent.get().getStatus() != EventStatus.PUBLISHED) {
+            Map<String, Object> hm = Map.of("success", false, "message", "Event is not published.");
+            return ResponseEntity.badRequest().body(hm);
         }
         boolean isExists = eventParticipantRepository.existsByEvent_IdAndUser_Id(
                 joinEventRequestDto.getEventId(),

@@ -27,7 +27,6 @@ export class EventDetail {
 
   eventItem = signal<IEventDetail | null>(null);
   participants = signal<ParticipantSummary[]>([]);
-  loading = signal<boolean>(false);
   participantsLoading = signal<boolean>(false);
   participantsNotice = signal<string | null>(null);
   participantsModalOpen = signal<boolean>(false);
@@ -58,7 +57,6 @@ export class EventDetail {
       this.participantsLoading.set(false);
       this.participantsModalOpen.set(false);
       this.leaveConfirmOpen.set(false);
-      this.loading.set(true);
       this.participantsNotice.set(null);
       this.joining.set(false);
       this.leaving.set(false);
@@ -66,11 +64,9 @@ export class EventDetail {
       this.http.get<IEventDetail>(apiUrl(`/event/detail/${id}`), { withCredentials: true }).subscribe({
         next: (response) => {
           this.eventItem.set(response);
-          this.loading.set(false);
           this.refreshParticipationState(response.id);
         },
         error: (error) => {
-          this.loading.set(false);
           this.notify.error('Etkinlik detayları alınırken bir hata oluştu. Etkinlik listesine yönlendiriliyorsunuz.');
           this.router.navigate(['/events']);
         }
@@ -80,7 +76,7 @@ export class EventDetail {
 
   joinEvent() {
     const event = this.eventItem();
-    if (!event || this.joining() || this.isParticipant(event)) {
+    if (!event || this.isJoinDisabled(event)) {
       return;
     }
 
@@ -270,6 +266,17 @@ export class EventDetail {
 
   isParticipant(event: IEventDetail | null | undefined): boolean {
     return Boolean(event?.isParticipant || event?.isJoined || event?.joined);
+  }
+
+  isJoinDisabled(event: IEventDetail | null | undefined): boolean {
+    if (!event) {
+      return true;
+    }
+
+    const status = event.status?.toLowerCase?.() ?? '';
+    const isBlockedStatus = status.includes('paused') || status.includes('archived');
+
+    return this.joining() || this.isParticipant(event) || isBlockedStatus;
   }
 
   private refreshParticipationState(eventId: number) {
