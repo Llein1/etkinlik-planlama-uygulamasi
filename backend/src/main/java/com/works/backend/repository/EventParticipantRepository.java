@@ -4,6 +4,9 @@ import com.works.backend.entity.EventParticipant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -13,5 +16,10 @@ public interface EventParticipantRepository extends JpaRepository<EventParticipa
     boolean existsByEvent_IdAndUser_Id(Long eventId, Long userId);
     void deleteByEvent_IdAndUser_Id(Long eventId, Long userId);
     long countByEvent_Id(Long eventId);
+
+    @Modifying
+    @Query("DELETE FROM EventParticipant ep WHERE ep.event.id = :eventId")
+    void deleteByEvent_Id(@Param("eventId") Long eventId);
+
 }
 

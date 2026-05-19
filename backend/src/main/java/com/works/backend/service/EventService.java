@@ -23,10 +23,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-giimport java.util.Locale;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class EventService {
     public ResponseEntity create(EventCreateRequestDto eventCreateRequestDto) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         ResponseEntity validation = validateEventDateTime(eventCreateRequestDto.getDate(), eventCreateRequestDto.getTime());
@@ -67,7 +68,7 @@ public class EventService {
     public ResponseEntity update(EventUpdateRequestDto eventUpdateRequestDto) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         ResponseEntity validation = validateEventDateTime(eventUpdateRequestDto.getDate(), eventUpdateRequestDto.getTime());
@@ -84,49 +85,53 @@ public class EventService {
             event.setDescription(eventUpdateRequestDto.getDescription());
             event.setCategory(eventUpdateRequestDto.getCategory());
             eventRepository.save(event);
-            Map<String, Object> hm = Map.of("success", true, "message", "Event updated successfully.");
+            Map<String, Object> hm = Map.of("success", true, "message", "Etkinlik başarıyla güncellendi.");
             return ResponseEntity.ok().body(hm);
         }
-        Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+        Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik bulunamadı.");
         return ResponseEntity.status(404).body(hm);
     }
 
     @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
+    @Transactional
     public ResponseEntity deleteOne(Long id) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         Optional<Event> optionalEvent = eventRepository.findByIdAndOwner_Id(id, optionalUser.get().getId());
         if (optionalEvent.isPresent()) {
+            // remove dependent child rows to satisfy FK constraints
+            eventParticipantRepository.deleteByEvent_Id(id);
+            eventFavoriteRepository.deleteByEvent_Id(id);
             eventRepository.deleteById(id);
-            Map<String, Object> hm = Map.of("success", true, "message", "Event deleted successfully.");
+            Map<String, Object> hm = Map.of("success", true, "message", "Etkinliği silme işlemi başarılı.");
             return ResponseEntity.ok().body(hm);
         }
-        Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+        Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik bulunamadı.");
         return ResponseEntity.status(404).body(hm);
     }
 
     @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity publish(Long id) {
-        return updateStatus(id, EventStatus.PUBLISHED, "Event published successfully.");
+        return updateStatus(id, EventStatus.PUBLISHED, "Etkinlik başarıyla yayınlandı.");
     }
 
     @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity pause(Long id) {
-        return updateStatus(id, EventStatus.PAUSED, "Event paused successfully.");
+        return updateStatus(id, EventStatus.PAUSED, "Etkinlik başarıyla duraklatıldı.");
     }
 
     @CacheEvict(cacheNames = {"eventListCache", "eventSearchCache", "eventOwnerListCache"}, allEntries = true)
     public ResponseEntity archive(Long id) {
-        return updateStatus(id, EventStatus.ARCHIVED, "Event archived successfully.");
+        return updateStatus(id, EventStatus.ARCHIVED, "Etkinlik başarıyla arşivlendi.");
     }
 
     public ResponseEntity getDetail(Long id) {
         Optional<Event> optionalEvent = eventRepository.findById(id);
         if (optionalEvent.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik bulunamadı.");
             return ResponseEntity.status(404).body(hm);
         }
         Event event = optionalEvent.get();
@@ -207,18 +212,18 @@ public class EventService {
     private ResponseEntity updateStatus(Long id, EventStatus status, String message) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         Optional<Event> optionalEvent = eventRepository.findByIdAndOwner_Id(id, optionalUser.get().getId());
         if (optionalEvent.isPresent()) {
             Event event = optionalEvent.get();
             if (event.getStatus() == EventStatus.ARCHIVED && status != EventStatus.ARCHIVED) {
-                Map<String, Object> hm = Map.of("success", false, "message", "Archived events cannot be updated.");
+                Map<String, Object> hm = Map.of("success", false, "message", "Arşivlenmiş etkinlikler değiştirilemez.");
                 return ResponseEntity.badRequest().body(hm);
             }
             if (isEventExpired(event) && (status == EventStatus.PUBLISHED || status == EventStatus.PAUSED)) {
-                Map<String, Object> hm = Map.of("success", false, "message", "Expired events cannot be published or paused.");
+                Map<String, Object> hm = Map.of("success", false, "message", "Süresi dolmuş etkinliklerin durumu değiştirilemez.");
                 return ResponseEntity.badRequest().body(hm);
             }
             event.setStatus(status);
@@ -226,7 +231,7 @@ public class EventService {
             Map<String, Object> hm = Map.of("success", true, "message", message);
             return ResponseEntity.ok().body(hm);
         }
-        Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+        Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik bulunamadı.");
         return ResponseEntity.status(404).body(hm);
     }
 
@@ -290,7 +295,7 @@ public class EventService {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         if (date.isBefore(today) || (date.isEqual(today) && !time.isAfter(now))) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Event date/time must be in the future.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Gelecek bir tarih/saat seçilmelidir.");
             return ResponseEntity.badRequest().body(hm);
         }
         return null;

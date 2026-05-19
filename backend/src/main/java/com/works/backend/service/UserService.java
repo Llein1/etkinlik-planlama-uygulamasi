@@ -26,7 +26,7 @@ public class UserService {
     public ResponseEntity register(UserRegisterRequestDto userRegisterRequestDto) {
         boolean isExists = userRepository.existsByEmailEqualsIgnoreCase(userRegisterRequestDto.getEmail());
         if (isExists) {
-            Map<String, Object> hm = Map.of("success", false, "message", "This email is already in use.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Bu mail adresi zaten kullanılıyor.");
             return ResponseEntity.badRequest().body(hm);
         }
         User user = model.map(userRegisterRequestDto, User.class);
@@ -48,13 +48,13 @@ public class UserService {
                 return ResponseEntity.ok().body(userResponseDto);
             }
         }
-        Map<String, Object> hm = Map.of("success", false, "message", "Email or password is incorrect.");
+        Map<String, Object> hm = Map.of("success", false, "message", "Email veya şifre yanlış.");
         return ResponseEntity.badRequest().body(hm);
     }
 
     public ResponseEntity logout() {
         request.getSession().invalidate();
-        return ResponseEntity.ok().body("Logout successfully.");
+        return ResponseEntity.ok().body("Başarıyla çıkış yapıldı.");
     }
 }
 

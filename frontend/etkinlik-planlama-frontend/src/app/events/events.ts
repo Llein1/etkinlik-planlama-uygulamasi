@@ -3,6 +3,7 @@ import { AfterViewInit, Component, inject, OnDestroy, signal } from '@angular/co
 import { RouterModule } from '@angular/router';
 import { IEvents, Event } from '../../models/IEvents';
 import { apiUrl } from '../shared/api-url';
+import { NotificationService } from '../shared/notification.service';
 import { TrDatePipe } from '../shared/tr-date.pipe';
 import { TrTimePipe } from '../shared/tr-time.pipe';
 import { FavoriteComponent } from '../shared/favorite/favorite';
@@ -18,6 +19,7 @@ declare const Swiper: any;
 export class Events implements AfterViewInit, OnDestroy {
 
   private http = inject(HttpClient);
+  private notification = inject(NotificationService);
   private _swiper: any;
   eventArray = signal<Event[]>([]);
   featuredEvents = signal<Event[]>([]);
@@ -71,7 +73,7 @@ export class Events implements AfterViewInit, OnDestroy {
         this.scheduleHeroRefresh();
       },
       error: (error) => {
-        alert('Etkinlikler yüklenirken hata oluştu: ' + (error.error?.message || 'Bilinmeyen hata'));
+        this.notification.error('Etkinlikler yüklenirken hata oluştu: ' + (error.error?.message || 'Bilinmeyen hata'));
         this.loading.set(false);
         this.initialLoad.set(false);
       }

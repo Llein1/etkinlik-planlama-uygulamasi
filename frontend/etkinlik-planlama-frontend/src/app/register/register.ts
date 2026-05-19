@@ -4,6 +4,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { apiUrl } from '../shared/api-url';
+import { NotificationService } from '../shared/notification.service';
 
 @Component({
   selector: 'app-register',
@@ -14,6 +15,7 @@ import { apiUrl } from '../shared/api-url';
 export class Register {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private notification = inject(NotificationService);
   registerForm: FormGroup;
 
   constructor(private formBuilder: FormBuilder) {
@@ -30,10 +32,11 @@ export class Register {
       const registerData = this.registerForm.value;
       this.http.post(apiUrl('/user/register'), registerData, { withCredentials: true }).subscribe({
         next: (response) => {
+          this.notification.success('Kayıt başarıyla oluşturuldu.');
           this.router.navigate(['/']);
         },
         error: (error) => {
-          alert('Kayıt başarısız: ' + (error.error?.message || 'Bilinmeyen hata'));
+          this.notification.error('Kayıt başarısız: ' + (error.error?.message || 'Bilinmeyen hata'));
         }
       })
     }

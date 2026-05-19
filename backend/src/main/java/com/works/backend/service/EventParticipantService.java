@@ -41,16 +41,16 @@ public class EventParticipantService {
     public ResponseEntity join(JoinEventRequestDto joinEventRequestDto) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         Optional<Event> optionalEvent = eventRepository.findById(joinEventRequestDto.getEventId());
         if (optionalEvent.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik bulunamadı.");
             return ResponseEntity.status(404).body(hm);
         }
         if (optionalEvent.get().getStatus() != EventStatus.PUBLISHED) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Event is not published.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik yayında değil.");
             return ResponseEntity.badRequest().body(hm);
         }
         boolean isExists = eventParticipantRepository.existsByEvent_IdAndUser_Id(
@@ -58,14 +58,14 @@ public class EventParticipantService {
                 optionalUser.get().getId()
         );
         if (isExists) {
-            Map<String, Object> hm = Map.of("success", false, "message", "You already joined this event.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Bu etkinliğe zaten katıldınız.");
             return ResponseEntity.badRequest().body(hm);
         }
         EventParticipant eventParticipant = new EventParticipant();
         eventParticipant.setEvent(optionalEvent.get());
         eventParticipant.setUser(optionalUser.get());
         eventParticipantRepository.save(eventParticipant);
-        Map<String, Object> hm = Map.of("success", true, "message", "Joined successfully.");
+        Map<String, Object> hm = Map.of("success", true, "message", "Etkinliğe başarıyla katıldınız.");
         return ResponseEntity.ok().body(hm);
     }
 
@@ -73,21 +73,21 @@ public class EventParticipantService {
     public ResponseEntity leave(Long eventId) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         Optional<Event> optionalEvent = eventRepository.findById(eventId);
         if (optionalEvent.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik bulunamadı.");
             return ResponseEntity.status(404).body(hm);
         }
         boolean isExists = eventParticipantRepository.existsByEvent_IdAndUser_Id(eventId, optionalUser.get().getId());
         if (!isExists) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Participation not found.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Bu etkinliğe katılımcı değilsiniz.");
             return ResponseEntity.status(404).body(hm);
         }
         eventParticipantRepository.deleteByEvent_IdAndUser_Id(eventId, optionalUser.get().getId());
-        Map<String, Object> hm = Map.of("success", true, "message", "Left successfully.");
+        Map<String, Object> hm = Map.of("success", true, "message", "Etkinlikten başarıyla ayrıldınız.");
         return ResponseEntity.ok().body(hm);
     }
 

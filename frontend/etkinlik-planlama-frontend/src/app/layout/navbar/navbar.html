@@ -9,7 +9,7 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" routerLink="/events" routerLinkActive="active" aria-current="page">Tüm Etkinlikler</a>
+          <a class="nav-link" routerLink="/events" routerLinkActive="active" aria-current="page">Etkinlikler</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/event-create" routerLinkActive="active" aria-current="page">Etkinlik Oluştur</a>
@@ -29,11 +29,11 @@
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link disabled" aria-disabled="true">Hoşgeldin, {{ globalName }}</a>
+          <a class="nav-link disabled" aria-disabled="true">Hoş geldin, {{ globalName }}</a>
         </li>
       </ul>
       <form class="d-flex" role="search" (ngSubmit)="search()">
-        <input name="q" [(ngModel)]="searchQuery" class="form-control me-2" type="search" placeholder="Ne Aramıştınız?" aria-label="Ara"/>
+        <input name="q" [(ngModel)]="searchQuery" class="form-control me-2" type="search" placeholder="Ne arıyorsunuz?" aria-label="Ara"/>
         <button class="btn btn-outline-success d-inline-flex align-items-center gap-2" type="submit">
           <i class="bi bi-search" aria-hidden="true"></i>
           <span>Ara</span>

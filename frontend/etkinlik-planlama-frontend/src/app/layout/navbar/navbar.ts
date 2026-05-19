@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive, RouterModule, Router, NavigationEnd } from '@angular/router'; // NavigationEnd eklendi
 import { filter } from 'rxjs'; // filter eklendi
 import { apiUrl } from '../../shared/api-url';
+import { NotificationService } from '../../shared/notification.service';
 
 @Component({
   selector: 'app-navbar',
@@ -15,6 +16,7 @@ import { apiUrl } from '../../shared/api-url';
 export class Navbar implements OnInit, OnDestroy {
 
   private http = inject(HttpClient);
+  private notification = inject(NotificationService);
   public router = inject(Router);
   
   searchQuery = '';
@@ -98,7 +100,7 @@ export class Navbar implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Logout error:', error);
-        alert('Çıkış yaparken hata oluştu. Lütfen tekrar deneyin.');
+        this.notification.error('Çıkış yaparken hata oluştu. Lütfen tekrar deneyin.');
       }
     });
   }

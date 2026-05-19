@@ -10,3 +10,13 @@
 .footer-brand:hover img {
     transform: scale(1.125) !important;
 }
+
+.bi-facebook, .bi-instagram, .bi-twitter-x {
+    display: inline-block;
+    transition: transform 0.3s ease-in-out, color 0.3s ease-in-out !important;
+}
+
+.bi-facebook:hover, .bi-instagram:hover, .bi-twitter-x:hover {
+    color: #dc291e !important;
+    transform: scale(1.125) !important;
+}

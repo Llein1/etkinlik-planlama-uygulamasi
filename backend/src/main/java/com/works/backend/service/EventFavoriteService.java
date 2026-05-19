@@ -37,12 +37,12 @@ public class EventFavoriteService {
     public ResponseEntity add(FavoriteEventRequestDto favoriteEventRequestDto) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         Optional<Event> optionalEvent = eventRepository.findById(favoriteEventRequestDto.getEventId());
         if (optionalEvent.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Event not found.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik bulunamadı.");
             return ResponseEntity.status(404).body(hm);
         }
         boolean isExists = eventFavoriteRepository.existsByEvent_IdAndUser_Id(
@@ -50,14 +50,14 @@ public class EventFavoriteService {
                 optionalUser.get().getId()
         );
         if (isExists) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Event already in favorites.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik zaten favorilerinizde.");
             return ResponseEntity.badRequest().body(hm);
         }
         EventFavorite eventFavorite = new EventFavorite();
         eventFavorite.setEvent(optionalEvent.get());
         eventFavorite.setUser(optionalUser.get());
         eventFavoriteRepository.save(eventFavorite);
-        Map<String, Object> hm = Map.of("success", true, "message", "Event added to favorites.");
+        Map<String, Object> hm = Map.of("success", true, "message", "Etkinlik favorilerinize eklendi.");
         return ResponseEntity.ok().body(hm);
     }
 
@@ -66,16 +66,16 @@ public class EventFavoriteService {
     public ResponseEntity remove(Long eventId) {
         Optional<User> optionalUser = getSessionUser();
         if (optionalUser.isEmpty()) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Unauthorized.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Oturum bulunamadı.");
             return ResponseEntity.status(401).body(hm);
         }
         boolean isExists = eventFavoriteRepository.existsByEvent_IdAndUser_Id(eventId, optionalUser.get().getId());
         if (!isExists) {
-            Map<String, Object> hm = Map.of("success", false, "message", "Favorite not found.");
+            Map<String, Object> hm = Map.of("success", false, "message", "Etkinlik favorilerde bulunamadı.");
             return ResponseEntity.status(404).body(hm);
         }
         eventFavoriteRepository.deleteByEvent_IdAndUser_Id(eventId, optionalUser.get().getId());
-        Map<String, Object> hm = Map.of("success", true, "message", "Event removed from favorites.");
+        Map<String, Object> hm = Map.of("success", true, "message", "Etkinlik favorilerinizden çıkartıldı.");
         return ResponseEntity.ok().body(hm);
     }
 

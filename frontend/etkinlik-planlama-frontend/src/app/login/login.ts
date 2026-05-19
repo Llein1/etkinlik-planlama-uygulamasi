@@ -4,6 +4,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { apiUrl } from '../shared/api-url';
+import { NotificationService } from '../shared/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +15,7 @@ import { apiUrl } from '../shared/api-url';
 export class Login {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private notification = inject(NotificationService);
   loginForm: FormGroup;
 
   constructor(private formBuilder: FormBuilder) {
@@ -32,10 +34,11 @@ export class Login {
           localStorage.setItem('id', id);
           localStorage.setItem('name', name);
           localStorage.setItem('email', email);
+          this.notification.success('Giriş başarılı.');
           this.router.navigate(['/events']);
         },
         error: (error) => {
-          alert('Giriş başarısız: ' + (error.error?.message || 'Bilinmeyen hata'));
+          this.notification.error('Giriş başarısız: ' + (error.error?.message || 'Bilinmeyen hata'));
         }
       });
     }

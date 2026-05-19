@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { IEvents, Event } from '../../models/IEvents';
 import { apiUrl } from '../shared/api-url';
+import { NotificationService } from '../shared/notification.service';
 import { TrDatePipe } from '../shared/tr-date.pipe';
 import { TrTimePipe } from '../shared/tr-time.pipe';
 import { FavoriteComponent } from '../shared/favorite/favorite';
@@ -15,6 +16,7 @@ import { FavoriteComponent } from '../shared/favorite/favorite';
 })
 export class ParticipantMy {
   private http = inject(HttpClient);
+  private notification = inject(NotificationService);
   eventArray = signal<Event[]>([]);
   pages = signal<number[]>([]);
   activePage = signal<number>(0);
@@ -36,7 +38,7 @@ export class ParticipantMy {
         this.loading.set(false);
       },
       error: (error) => {
-        alert('Katıldıklarınız yüklenirken hata oluştu: ' + (error.error?.message || 'Bilinmeyen hata'));
+        this.notification.error('Katıldıklarınız yüklenirken hata oluştu: ' + (error.error?.message || 'Bilinmeyen hata'));
         this.loading.set(false);
       }
     });

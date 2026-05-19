@@ -84,7 +84,7 @@ export class EventDetail {
     const body = { eventId: event.id };
     this.http.post<any>(apiUrl('/participant/join'), body, { withCredentials: true }).subscribe({
       next: (res) => {
-        this.notify.success('Etkinliğe katıldınız.');
+        this.notify.success(res?.message || 'Etkinliğe katıldınız.');
         const current = this.eventItem();
         if (current) {
           const newCount = (current.participantCount || 0) + 1;
@@ -107,7 +107,7 @@ export class EventDetail {
       },
       error: (err) => {
         this.joining.set(false);
-        this.notify.error('Etkinliğe katılırken bir hata oluştu.');
+        this.notify.error(err?.error?.message || 'Etkinliğe katılırken bir hata oluştu.');
       }
     });
   }
@@ -146,8 +146,8 @@ export class EventDetail {
     this.leaving.set(true);
     this.leaveConfirmOpen.set(false);
     this.http.delete<any>(apiUrl(`/participant/leave/${event.id}`), { withCredentials: true }).subscribe({
-      next: () => {
-        this.notify.success('Etkinlikten ayrıldın.');
+      next: (res) => {
+        this.notify.success(res?.message || 'Etkinlikten ayrıldın.');
         const current = this.eventItem();
         if (current) {
           const newCount = Math.max((current.participantCount || 0) - 1, 0);
@@ -178,9 +178,9 @@ export class EventDetail {
           console.error('Failed to remove modal-open:', e);
         }
       },
-      error: () => {
+      error: (err) => {
         this.leaving.set(false);
-        this.notify.error('Etkinlikten ayrılırken bir hata oluştu.');
+        this.notify.error(err?.error?.message || 'Etkinlikten ayrılırken bir hata oluştu.');
         try {
           if (!this.participantsModalOpen()) {
             document.body.classList.remove('modal-open');
