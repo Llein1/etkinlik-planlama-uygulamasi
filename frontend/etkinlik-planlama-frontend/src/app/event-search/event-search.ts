@@ -1,9 +1,9 @@
-import { Component, signal, OnDestroy } from '@angular/core';
+import { Component, signal, OnDestroy, inject, ElementRef, Renderer2, HostListener, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { FavoriteComponent } from '../shared/favorite/favorite';
 import { Event, IEvents } from '../../models/IEvents';
-import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../shared/api-url';
 import { TrDatePipe } from '../shared/tr-date.pipe';
 import { TrTimePipe } from '../shared/tr-time.pipe';
@@ -15,75 +15,84 @@ import { TrTimePipe } from '../shared/tr-time.pipe';
   styleUrl: './event-search.css',
 })
 export class EventSearch implements OnDestroy {
+  private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private renderer = inject(Renderer2);
 
   searchQuery = signal('');
   sort = signal('');
   statusFilter = signal('');
+  
   sortOpen = signal(false);
   statusOpen = signal(false);
-  menuTop = signal<number | null>(null);
-  menuLeft = signal<number | null>(null);
-  menuWidth = signal<number | null>(null);
-  statusMenuTop = signal<number | null>(null);
-  statusMenuLeft = signal<number | null>(null);
-  statusMenuWidth = signal<number | null>(null);
-  private _menuHostParent?: Node | null;
-  private _menuHostNextSibling?: Node | null;
-  private _statusMenuHostParent?: Node | null;
-  private _statusMenuHostNextSibling?: Node | null;
-  private _docClickHandler?: EventListener;
+
+  // HTML'den referans aldığımız DOM elemanları
+  statusControlRef = viewChild<ElementRef<HTMLElement>>('statusControl');
+  statusMenuRef = viewChild<ElementRef<HTMLElement>>('statusMenu');
+  sortControlRef = viewChild<ElementRef<HTMLElement>>('sortControl');
+  sortMenuRef = viewChild<ElementRef<HTMLElement>>('sortMenu');
+
+  // Menüleri eski yerine koymak için yer tutucular
+  private statusPlaceholder: Comment;
+  private sortPlaceholder: Comment;
+
   eventArray = signal<Event[]>([]);
   pages = signal<number[]>([]);
   activePage = signal<number>(0);
   loading = signal<boolean>(false);
   totalElements = signal<number>(0);
 
-  constructor(private route: ActivatedRoute, private http: HttpClient, private router: Router) {
+  constructor() {
+    // DOM'da görünmeyen yer tutucu yorum satırları oluşturuyoruz
+    this.statusPlaceholder = this.renderer.createComment('status-menu-placeholder');
+    this.sortPlaceholder = this.renderer.createComment('sort-menu-placeholder');
+
     this.route.queryParams.subscribe(params => {
       const query = (params['q'] ?? '').toString();
       const sortParam = (params['sort'] ?? '').toString();
-      const statusParam = (params['status'] ?? '').toString();
+      const statusParam = this.normalizeStatusValue((params['status'] ?? '').toString());
+      
       this.searchQuery.set(query);
       this.sort.set(sortParam);
-      this.statusFilter.set(statusParam);
-      console.log('Search query from URL:', query, 'sort:', sortParam, 'status:', statusParam);
+      this.statusFilter.set(statusParam || 'default');
       this.searchEvents(0);
     });
-    this._docClickHandler = ((e: Event) => {
-      try {
-        const path = (e as any).composedPath ? (e as any).composedPath() : (e as any).path || [];
-        const clickedInside = path.some((el: any) =>
-          el && el.classList && el.classList.contains && (
-            el.classList.contains('event-search-sort__control') ||
-            el.classList.contains('event-search-filter__control')
-          )
-        );
-        if (!clickedInside) {
-          this.sortOpen.set(false);
-          this.statusOpen.set(false);
-        }
-      } catch (err) {
-        this.sortOpen.set(false);
-        this.statusOpen.set(false);
-      }
-    }) as unknown as EventListener;
-    if (this._docClickHandler) {
-      window.addEventListener('click', this._docClickHandler);
+  }
+
+  // Dışarı tıklamayı yakalayan Angular dinleyicisi
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+
+    const statusCtrl = this.statusControlRef()?.nativeElement;
+    const statusMenu = this.statusMenuRef()?.nativeElement;
+    if (this.statusOpen() && statusCtrl && statusMenu && !statusCtrl.contains(target) && !statusMenu.contains(target)) {
+      this.statusOpen.set(false);
+      this.closeMenuFromBody(statusCtrl, statusMenu, this.statusPlaceholder);
+    }
+
+    const sortCtrl = this.sortControlRef()?.nativeElement;
+    const sortMenu = this.sortMenuRef()?.nativeElement;
+    if (this.sortOpen() && sortCtrl && sortMenu && !sortCtrl.contains(target) && !sortMenu.contains(target)) {
+      this.sortOpen.set(false);
+      this.closeMenuFromBody(sortCtrl, sortMenu, this.sortPlaceholder);
     }
   }
 
   searchEvents(page: number = 0) {
     const query = encodeURIComponent(this.searchQuery());
     const sortParam = this.sort();
-    const statusParam = this.statusFilter();
+    const statusParam = this.getStatusApiValue(this.statusFilter());
     this.activePage.set(page);
     this.loading.set(true);
+    
     const url = apiUrl(`/event/search?page=${page}&q=${query}${sortParam ? '&sort=' + sortParam : ''}${statusParam ? '&status=' + statusParam : ''}`);
+    
     this.http.get<IEvents>(url, { withCredentials: true }).subscribe({
       next: (response) => {
         this.eventArray.set(response.content);
-        const pagesArray = Array.from({ length: response.page.totalPages }, (_, i) => i);
-        this.pages.set(pagesArray);
+        this.pages.set(Array.from({ length: response.page.totalPages }, (_, i) => i));
         this.totalElements.set(response.page.totalElements);
         this.loading.set(false);
       },
@@ -94,174 +103,140 @@ export class EventSearch implements OnDestroy {
     });
   }
 
-  onSortChange(value: string) {
-    this.sort.set(value);
-    const q = this.searchQuery() || null;
-    const sortVal = value || null;
-    const statusVal = this.statusFilter() || null;
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { q: q, sort: sortVal, status: statusVal },
-      queryParamsHandling: 'merge'
-    });
-    this.searchEvents(0);
-  }
-
-  onStatusChange(value: string) {
-    this.statusFilter.set(value);
-    const q = this.searchQuery() || null;
-    const sortVal = this.sort() || null;
-    const statusVal = value || null;
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { q: q, sort: sortVal, status: statusVal },
-      queryParamsHandling: 'merge'
-    });
-    this.searchEvents(0);
-  }
-
   toggleStatusMenu() {
     const willOpen = !this.statusOpen();
     this.statusOpen.set(willOpen);
-    if (willOpen) {
-      try {
-        const el = document.querySelector('.event-search-filter__control') as HTMLElement | null;
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          this.statusMenuTop.set(rect.bottom + 8);
-          this.statusMenuLeft.set(rect.left);
-          this.statusMenuWidth.set(rect.width);
-
-          const menuEl = document.querySelector('.event-search-filter__menu') as HTMLElement | null;
-          if (menuEl && menuEl.parentNode !== document.body) {
-            this._statusMenuHostParent = menuEl.parentNode;
-            this._statusMenuHostNextSibling = menuEl.nextSibling;
-            document.body.appendChild(menuEl);
-            menuEl.style.top = (rect.bottom + 8) + 'px';
-            menuEl.style.left = rect.left + 'px';
-            menuEl.style.minWidth = rect.width + 'px';
-          } else if (menuEl) {
-            menuEl.style.top = (rect.bottom + 8) + 'px';
-            menuEl.style.left = rect.left + 'px';
-            menuEl.style.minWidth = rect.width + 'px';
-          }
-        } else {
-          this.statusMenuTop.set(null);
-          this.statusMenuLeft.set(null);
-          this.statusMenuWidth.set(null);
-        }
-      } catch (err) {
-        this.statusMenuTop.set(null);
-        this.statusMenuLeft.set(null);
-        this.statusMenuWidth.set(null);
-      }
-    } else {
-      const menuEl = document.querySelector('.event-search-filter__menu') as HTMLElement | null;
-      if (menuEl && this._statusMenuHostParent) {
-        try {
-          if (this._statusMenuHostNextSibling && this._statusMenuHostNextSibling.parentNode === this._statusMenuHostParent) {
-            this._statusMenuHostParent.insertBefore(menuEl, this._statusMenuHostNextSibling);
-          } else {
-            this._statusMenuHostParent.appendChild(menuEl);
-          }
-        } catch (_) {}
-        this._statusMenuHostParent = undefined;
-        this._statusMenuHostNextSibling = undefined;
+    
+    const controlEl = this.statusControlRef()?.nativeElement;
+    const menuEl = this.statusMenuRef()?.nativeElement;
+    
+    if (controlEl && menuEl) {
+      if (willOpen) {
+        if (this.sortOpen()) this.toggleSortMenu();
+        this.openMenuInBody(controlEl, menuEl, this.statusPlaceholder);
+      } else {
+        this.closeMenuFromBody(controlEl, menuEl, this.statusPlaceholder);
       }
     }
-  }
-
-  selectStatus(value: string) {
-    this.onStatusChange(value);
-    this.statusOpen.set(false);
   }
 
   toggleSortMenu() {
     const willOpen = !this.sortOpen();
     this.sortOpen.set(willOpen);
-    if (willOpen) {
-          // compute menu position relative to viewport so it can be fixed and not clipped 
-      try {
-        const el = document.querySelector('.event-search-sort__control') as HTMLElement | null;
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          this.menuTop.set(rect.bottom + 8); // 8px gap
-          this.menuLeft.set(rect.left);
-          this.menuWidth.set(rect.width);
-              // move menu element to body so it's not clipped by parents
-              const menuEl = document.querySelector('.event-search-sort__menu') as HTMLElement | null;
-              if (menuEl && menuEl.parentNode !== document.body) {
-                this._menuHostParent = menuEl.parentNode;
-                this._menuHostNextSibling = menuEl.nextSibling;
-                document.body.appendChild(menuEl);
-                menuEl.style.top = (rect.bottom + 8) + 'px';
-                menuEl.style.left = rect.left + 'px';
-                menuEl.style.minWidth = rect.width + 'px';
-              } else if (menuEl) {
-                menuEl.style.top = (rect.bottom + 8) + 'px';
-                menuEl.style.left = rect.left + 'px';
-                menuEl.style.minWidth = rect.width + 'px';
-              }
-        } else {
-          this.menuTop.set(null);
-          this.menuLeft.set(null);
-          this.menuWidth.set(null);
-        }
-      } catch (err) {
-        this.menuTop.set(null);
-        this.menuLeft.set(null);
-        this.menuWidth.set(null);
+
+    const controlEl = this.sortControlRef()?.nativeElement;
+    const menuEl = this.sortMenuRef()?.nativeElement;
+
+    if (controlEl && menuEl) {
+      if (willOpen) {
+        if (this.statusOpen()) this.toggleStatusMenu();
+        this.openMenuInBody(controlEl, menuEl, this.sortPlaceholder);
+      } else {
+        this.closeMenuFromBody(controlEl, menuEl, this.sortPlaceholder);
       }
-        } else {
-          // closing: if we moved menu into body, restore it back to original place
-          const menuEl = document.querySelector('.event-search-sort__menu') as HTMLElement | null;
-          if (menuEl && this._menuHostParent) {
-            try {
-              if (this._menuHostNextSibling && this._menuHostNextSibling.parentNode === this._menuHostParent) {
-                this._menuHostParent.insertBefore(menuEl, this._menuHostNextSibling);
-              } else {
-                this._menuHostParent.appendChild(menuEl);
-              }
-            } catch (_) {}
-            this._menuHostParent = undefined;
-            this._menuHostNextSibling = undefined;
-          }
     }
   }
 
-  selectSort(value: string) {
-    this.onSortChange(value);
-    this.sortOpen.set(false);
+  private openMenuInBody(controlEl: HTMLElement, menuEl: HTMLElement, placeholder: Comment) {
+    // DÜZELTME: Sadece direct parent document.body ise durdur.
+    if (menuEl.parentNode === document.body) return;
+
+    const rect = controlEl.getBoundingClientRect();
+    
+    this.renderer.insertBefore(controlEl, placeholder, menuEl);
+    this.renderer.appendChild(document.body, menuEl);
+
+    this.renderer.setStyle(menuEl, 'position', 'absolute');
+    this.renderer.setStyle(menuEl, 'top', `${rect.bottom + 8 + window.scrollY}px`);
+    this.renderer.setStyle(menuEl, 'left', `${rect.left + window.scrollX}px`);
+    this.renderer.setStyle(menuEl, 'min-width', `${rect.width}px`);
+    
+    // Menü body'e başarıyla taşınacağı için 1050 fazlasıyla yetecektir
+    this.renderer.setStyle(menuEl, 'z-index', '1050'); 
   }
 
-  ngOnDestroy() {
-    try {
-      if (this._docClickHandler) {
-        window.removeEventListener('click', this._docClickHandler);
-      }
-    } catch(_) {}
+  private closeMenuFromBody(controlEl: HTMLElement, menuEl: HTMLElement, placeholder: Comment) {
+    // DÜZELTME: Sadece direct parent document.body ise geri al.
+    if (menuEl.parentNode === document.body) {
+      this.renderer.insertBefore(controlEl, menuEl, placeholder);
+      this.renderer.removeChild(controlEl, placeholder);
+      
+      this.renderer.removeStyle(menuEl, 'position');
+      this.renderer.removeStyle(menuEl, 'top');
+      this.renderer.removeStyle(menuEl, 'left');
+      this.renderer.removeStyle(menuEl, 'min-width');
+      this.renderer.removeStyle(menuEl, 'z-index');
+    }
+  }
+
+  selectStatus(value: string) {
+    this.statusFilter.set(this.normalizeStatusValue(value));
+    this.updateRouteAndSearch();
+    this.toggleStatusMenu();
+  }
+
+  selectSort(value: string) {
+    this.sort.set(value);
+    this.updateRouteAndSearch();
+    this.toggleSortMenu();
+  }
+
+  private updateRouteAndSearch() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { 
+        q: this.searchQuery() || null, 
+        sort: this.sort() || null, 
+        status: this.getStatusApiValue(this.statusFilter()) || null 
+      },
+      queryParamsHandling: 'merge'
+    });
+    this.searchEvents(0);
   }
 
   onFavoriteToggled(item: Event, newState: boolean) {
-    const updated = this.eventArray().map(ev => ev.id === item.id ? { ...ev, isFavorite: newState } : ev);
-    this.eventArray.set(updated);
+    this.eventArray.update(events => events.map(ev => ev.id === item.id ? { ...ev, isFavorite: newState } : ev));
+  }
+
+  ngOnDestroy() {
+    const statusCtrl = this.statusControlRef()?.nativeElement;
+    const statusMenu = this.statusMenuRef()?.nativeElement;
+    if (statusCtrl && statusMenu) this.closeMenuFromBody(statusCtrl, statusMenu, this.statusPlaceholder);
+
+    const sortCtrl = this.sortControlRef()?.nativeElement;
+    const sortMenu = this.sortMenuRef()?.nativeElement;
+    if (sortCtrl && sortMenu) this.closeMenuFromBody(sortCtrl, sortMenu, this.sortPlaceholder);
   }
 
   getStatusLabel(status: string): string {
-    const statusMap: Record<string, string> = {
-      'PUBLISHED': 'Yayında',
-      'STOPPED': 'Yayın Durduruldu',
-      'ARCHIVED': 'Arşivlendi'
-    };
+    const statusMap: Record<string, string> = { 'PUBLISHED': 'Yayında', 'STOPPED': 'Yayın Durduruldu', 'ARCHIVED': 'Arşivlendi' };
     return statusMap[status] || status;
   }
 
   getStatusVariant(status: string): string {
-    const variantMap: Record<string, string> = {
-      'PUBLISHED': 'published',
-      'STOPPED': 'stopped',
-      'ARCHIVED': 'archived'
-    };
-    return variantMap[status] || 'published';
+    const variantMap: Record<string, string> = { 'PUBLISHED': 'published', 'STOPPED': 'paused', 'PAUSED': 'paused', 'ARCHIVED': 'archived' };
+    return variantMap[status.toUpperCase()] || 'published';
+  }
+
+  getStatusFilterLabel(status: string): string {
+    const normalized = (status || '').toLowerCase();
+    if (normalized === 'default') return 'Varsayılan';
+    if (normalized === 'published') return 'Yayında';
+    if (normalized === 'paused' || normalized === 'stopped') return 'Yayın Durduruldu';
+    if (normalized === 'archived') return 'Arşivlendi';
+    return 'Tümü';
+  }
+
+  private normalizeStatusValue(value: string): string {
+    const normalized = (value || '').toLowerCase();
+    if (normalized === 'stopped') return 'paused';
+    if (normalized === 'default') return 'default';
+    if (['published', 'paused', 'archived'].includes(normalized)) return normalized;
+    return '';
+  }
+
+  private getStatusApiValue(value: string): string {
+    const normalized = this.normalizeStatusValue(value);
+    return normalized === 'default' ? 'published' : normalized;
   }
 }

@@ -1,154 +1,160 @@
 <section class="events-page container py-4 py-lg-5">
-  <div class="events-expo-shell mx-auto">
-    <div class="events-hero-head text-center mb-4 mb-lg-5">
-      <p class="events-hero-head__eyebrow text-uppercase mb-2">Vitrin</p>
-      <h1 class="events-hero-head__title">Sizin için Seçtiklerimiz</h1>
+  
+  @if (initialLoad()) {
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Yükleniyor...</span>
+      </div>
     </div>
+  } 
+  @else {
+    
+    <div class="events-expo-shell mx-auto">
+      <div class="events-hero-head text-center mb-4 mb-lg-5">
+        <p class="events-hero-head__eyebrow text-uppercase mb-2">Vitrin</p>
+        <h1 class="events-hero-head__title">Sizin için Seçtiklerimiz</h1>
+      </div>
 
-    @if (featuredEvents().length > 0) {
-      <div class="swiper events-hero-swiper events-expo-swiper">
-        <div class="swiper-wrapper">
-          @for (item of featuredEvents(); track item.id; let i = $index) {
-            <div class="swiper-slide">
-              <article class="expo-card {{ getThemeClass(i) }}">
-                <div class="expo-card__top d-flex justify-content-between align-items-start gap-3 mb-3">
-                  <span class="expo-card__pill">{{ item.category }}</span>
-                  <span class="expo-card__owner">{{ item.ownerName }}</span>
-                </div>
+      @if (featuredEvents().length > 0) {
+        <div class="swiper events-hero-swiper events-expo-swiper">
+          <div class="swiper-wrapper">
+            @for (item of featuredEvents(); track item.id; let i = $index) {
+              <div class="swiper-slide">
+                <article class="expo-card {{ getThemeClass(i) }}">
+                  <div class="expo-card__top d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <span class="expo-card__pill">{{ item.category }}</span>
+                    <span class="expo-card__owner">{{ item.ownerName }}</span>
+                  </div>
 
-                <div class="expo-card__body">
-                  <p class="expo-card__kicker mb-2">Öne çıkan etkinlik</p>
-                  <h2 class="expo-card__title mb-3">{{ item.title }}</h2>
-                  <p class="expo-card__description mb-4">{{ item.description || item.location }}</p>
+                  <div class="expo-card__body">
+                    <p class="expo-card__kicker mb-2">Öne çıkan etkinlik</p>
+                    <h2 class="expo-card__title mb-3">{{ item.title }}</h2>
+                    <p class="expo-card__description mb-4">{{ item.description || item.location }}</p>
 
-                  <div class="expo-card__meta mb-4">
-                    <div>
-                      <span>Tarih</span>
-                      <strong>{{ item.date | trDate }} · {{ item.time | trTime }}</strong>
-                    </div>
-                    <div>
-                      <span>Konum</span>
-                      <strong>{{ item.location }}</strong>
-                    </div>
-                    <div>
-                      <span>Durum</span>
-                      <strong>{{ getStatusLabel(item.status) }}</strong>
+                    <div class="expo-card__meta mb-4">
+                      <div>
+                        <span>Tarih</span>
+                        <strong>{{ item.date | trDate }} · {{ item.time | trTime }}</strong>
+                      </div>
+                      <div>
+                        <span>Konum</span>
+                        <strong>{{ item.location }}</strong>
+                      </div>
+                      <div>
+                        <span>Durum</span>
+                        <strong>{{ getStatusLabel(item.status) }}</strong>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div class="expo-card__footer d-flex flex-wrap align-items-center justify-content-between gap-3">
-                  <app-favorite
-                    [eventId]="item.id"
-                    [isFavorite]="item.isFavorite"
-                    (toggled)="onFavoriteToggled(item, $event)"
-                  ></app-favorite>
-                  <a [routerLink]="['/event/detail', item.id]" [state]="{ event: item }" class="btn btn-outline-light expo-card__cta">
-                    Detayları Gör
-                  </a>
-                </div>
-              </article>
-            </div>
-          }
-        </div>
-
-        <div class="events-hero-actions mt-3 mt-lg-4">
-          <button type="button" class="events-hero-actions__btn events-hero__prev" aria-label="önceki slide geç">
-            <i class="bi bi-arrow-left"></i>
-          </button>
-          <div class="events-hero__pagination home-pagination"></div>
-          <button type="button" class="events-hero-actions__btn events-hero__next" aria-label="sonraki slide geç">
-            <i class="bi bi-arrow-right"></i>
-          </button>
-        </div>
-      </div>
-    }
-  </div>
-
-  @if (loading()) {
-    <div class="text-center py-5">
-      <div class="spinner-border" role="status"><span class="visually-hidden">Yükleniyor...</span></div>
-    </div>
-  }
-
-  @if (!loading() && eventArray().length === 0) {
-    <div class="text-center py-5">
-      <h2 class="h5">Henüz etkinlik yok</h2>
-      <p class="text-muted">Yeni etkinlik oluşturmak için butona tıklayın.</p>
-    </div>
-  }
-
-  @if (!loading() && eventArray().length > 0) {
-    <div class="events-list-header d-flex justify-content-between align-items-center gap-3 mt-4 mt-lg-5 mb-3">
-      <div>
-        <p class="text-uppercase mb-1 events-list-header__eyebrow">Tüm etkinlikler</p>
-        <h2 class="h4 mb-0">Kayıtlı etkinlikler</h2>
-        
-      </div>
-      <nav aria-label="Sayfalama" class="app-pagination mb-3">
-          <ul class="pagination justify-content-end flex-wrap gap-2 mb-0">
-            @for (page of pages(); track page) {
-              <li class="page-item">
-                <a class="page-link" [class.active]="page === activePage()" role="button" (click)="fetchEvents(page)">{{ page + 1 }}</a>
-              </li>
+                  <div class="expo-card__footer d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <app-favorite
+                      [eventId]="item.id"
+                      [isFavorite]="item.isFavorite"
+                      (toggled)="onFavoriteToggled(item, $event)"
+                    ></app-favorite>
+                    <a [routerLink]="['/event/detail', item.id]" [state]="{ event: item }" class="btn btn-outline-light expo-card__cta">
+                      Detayları Gör
+                    </a>
+                  </div>
+                </article>
+              </div>
             }
-          </ul>
-        </nav>
-    </div>
+          </div>
 
-    
-
-    <div class="row g-4">
-      @for (item of eventArray(); track item.id) {
-        <div class="col-12 col-md-6 col-xl-4">
-          <article class="event-card">
-            <div class="event-card__header mb-3">
-              <div class="event-card__chips d-flex flex-wrap gap-2">
-                <span class="event-card__category">{{ item.category }}</span>
-                <span class="event-card__status event-card__status--{{ getStatusVariant(item.status) }}">
-                  {{ getStatusLabel(item.status) }}
-                </span>
-              </div>
-            </div>
-
-            <div class="event-card__body mb-3">
-              <h3 class="event-card__title mb-2">{{ item.title }}</h3>
-              <p class="event-card__owner mb-3">
-                <i class="bi bi-person-circle" aria-hidden="true"></i>
-                {{ item.ownerName }}
-              </p>
-
-              <div class="event-card__meta">
-                <div class="event-card__meta-item">
-                  <i class="bi bi-calendar-event" aria-hidden="true"></i>
-                  <span>{{ item.date | trDate }}</span>
-                </div>
-                <div class="event-card__meta-item">
-                  <i class="bi bi-clock" aria-hidden="true"></i>
-                  <span>{{ item.time | trTime }}</span>
-                </div>
-                <div class="event-card__meta-item">
-                  <i class="bi bi-geo-alt" aria-hidden="true"></i>
-                  <span>{{ item.location }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="event-card__footer d-flex align-items-center justify-content-between gap-2">
-              <app-favorite
-                [eventId]="item.id"
-                [isFavorite]="item.isFavorite"
-                (toggled)="onFavoriteToggled(item, $event)"
-              ></app-favorite>
-              <a [routerLink]="['/event/detail', item.id]" [state]="{ event: item }" class="btn btn-sm btn-primary">
-                Detayları Gör
-              </a>
-            </div>
-          </article>
+          <div class="events-hero-actions mt-3 mt-lg-4">
+            <button type="button" class="events-hero-actions__btn events-hero__prev" aria-label="önceki slide geç">
+              <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="events-hero__pagination home-pagination"></div>
+            <button type="button" class="events-hero-actions__btn events-hero__next" aria-label="sonraki slide geç">
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
         </div>
       }
     </div>
 
-    
+    @if (loading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border" role="status"><span class="visually-hidden">Yükleniyor...</span></div>
+      </div>
+    }
+
+    @else if (eventArray().length === 0) {
+      <div class="text-center py-5">
+        <h2 class="h5">Henüz etkinlik yok</h2>
+        <p class="text-muted">Yeni etkinlik oluşturmak için butona tıklayın.</p>
+      </div>
+    }
+
+    @else {
+      <div class="events-list-header d-flex justify-content-between align-items-center gap-3 mt-4 mt-lg-5 mb-3">
+        <div>
+          <p class="text-uppercase mb-1 events-list-header__eyebrow">Tüm etkinlikler</p>
+          <h2 class="h4 mb-0">Kayıtlı etkinlikler</h2>
+        </div>
+        <nav aria-label="Sayfalama" class="app-pagination mb-3">
+            <ul class="pagination justify-content-end flex-wrap gap-2 mb-0">
+              @for (page of pages(); track page) {
+                <li class="page-item">
+                  <a class="page-link" [class.active]="page === activePage()" role="button" (click)="fetchEvents(page)">{{ page + 1 }}</a>
+                </li>
+              }
+            </ul>
+          </nav>
+      </div>
+
+      <div class="row g-4">
+        @for (item of eventArray(); track item.id) {
+          <div class="col-12 col-md-6 col-xl-4">
+            <article class="event-card">
+              <div class="event-card__header mb-3">
+                <div class="event-card__chips d-flex flex-wrap gap-2">
+                  <span class="event-card__category">{{ item.category }}</span>
+                  <span class="event-card__status event-card__status--{{ getStatusVariant(item.status) }}">
+                    {{ getStatusLabel(item.status) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="event-card__body mb-3">
+                <h3 class="event-card__title mb-2">{{ item.title }}</h3>
+                <p class="event-card__owner mb-3">
+                  <i class="bi bi-person-circle" aria-hidden="true"></i>
+                  {{ item.ownerName }}
+                </p>
+
+                <div class="event-card__meta">
+                  <div class="event-card__meta-item">
+                    <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                    <span>{{ item.date | trDate }}</span>
+                  </div>
+                  <div class="event-card__meta-item">
+                    <i class="bi bi-clock" aria-hidden="true"></i>
+                    <span>{{ item.time | trTime }}</span>
+                  </div>
+                  <div class="event-card__meta-item">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    <span>{{ item.location }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="event-card__footer d-flex align-items-center justify-content-between gap-2">
+                <app-favorite
+                  [eventId]="item.id"
+                  [isFavorite]="item.isFavorite"
+                  (toggled)="onFavoriteToggled(item, $event)"
+                ></app-favorite>
+                <a [routerLink]="['/event/detail', item.id]" [state]="{ event: item }" class="btn btn-sm btn-primary">
+                  Detayları Gör
+                </a>
+              </div>
+            </article>
+          </div>
+        }
+      </div>
+    }
   }
 </section>

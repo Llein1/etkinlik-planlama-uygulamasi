@@ -186,7 +186,8 @@
 
 .event-search-filters {
 	position: relative;
-	z-index: 2;
+	/* raise filters above cards so dropdowns are not obscured */
+	z-index: 3050;
 }
 
 .event-search-filter__control,
@@ -200,7 +201,7 @@
 	color: var(--color-white);
 	border: 1px solid rgba(255,255,255,0.12);
 	padding: 0.35rem 1rem 0.35rem 0.9rem;
-	min-width: 10rem;
+	min-width: 11rem;
 	justify-content: space-between;
 }
 
@@ -221,10 +222,18 @@
 	border-color: var(--color-primary);
 }
 
+.event-search-filter__control,
+.event-search-sort__control {
+	position: relative;
+}
+
 .event-search-filter__menu,
 .event-search-sort__menu {
-	position: fixed;
-	z-index: 2050;
+	position: absolute;
+	/* significantly higher than card stacking contexts */
+	z-index: 3070;
+	top: calc(100% + 8px);
+	left: 0;
 	min-width: 12rem;
 	padding: 0.25rem 0;
 	border-radius: 0.5rem;

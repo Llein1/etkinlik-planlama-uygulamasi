@@ -54,10 +54,13 @@
 	--swiper-pagination-progressbar-size: 4px;
 }
 
-body {
+html, body {
 	font-family: var(--font-regular);
 	background: var(--page-bg);
 	color: var(--color-dark);
+	overflow-x: hidden;
+	width: 100%;
+	position: relative;
 }
 
 /* Shared form and picker surfaces used by create/update screens */
@@ -398,6 +401,20 @@ body {
 	flex: 1;
 	position: relative;
 	z-index: 1;
+}
+
+/* Make the empty-state "Tüm Etkinlikleri Gör" primary button use the theme red */
+.event-search-empty .btn.btn-primary {
+	background: var(--color-primary);
+	border-color: var(--color-primary);
+	color: var(--color-white);
+}
+
+.event-search-empty .btn.btn-primary:hover,
+.event-search-empty .btn.btn-primary:focus {
+	background: var(--color-primary-dark);
+	border-color: var(--color-primary-dark);
+	color: var(--color-white);
 }
 
 :is(.event-search-card__title, .event-card__title, .event-my-card__title) {

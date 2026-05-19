@@ -24,7 +24,10 @@ export class Events implements AfterViewInit, OnDestroy {
   selectedFeaturedIndex = signal<number>(0);
   pages = signal<number[]>([]);
   activePage = signal<number>(0);
-  loading = signal<boolean>(false);
+  
+  // YENİ EKLENEN KISIM: Başlangıç yüklemeleri
+  loading = signal<boolean>(true);
+  initialLoad = signal<boolean>(true);
 
   constructor() {
     console.log('Events component initialized');
@@ -60,17 +63,22 @@ export class Events implements AfterViewInit, OnDestroy {
 
         const eventsArray = Array.from({ length: response.page.totalPages }, (_, i) => i);
         this.pages.set(eventsArray);
+        
+        // YENİ EKLENEN KISIM: Yüklemeleri sonlandır
         this.loading.set(false);
+        this.initialLoad.set(false);
 
         this.scheduleHeroRefresh();
       },
       error: (error) => {
         alert('Etkinlikler yüklenirken hata oluştu: ' + (error.error?.message || 'Bilinmeyen hata'));
         this.loading.set(false);
+        this.initialLoad.set(false);
       }
     });
   }
 
+  // ... (Geri Kalan Tüm Fonksiyonlar Aynı Kalacak) ...
   selectFeaturedSlide(index: number) {
     this.selectedFeaturedIndex.set(index);
     if (this._swiper?.slideTo) {
@@ -87,37 +95,17 @@ export class Events implements AfterViewInit, OnDestroy {
 
   getStatusVariant(status: string): string {
     const normalizedStatus = status.toLowerCase();
-
-    if (normalizedStatus.includes('published')) {
-      return 'published';
-    }
-
-    if (normalizedStatus.includes('paused')) {
-      return 'paused';
-    }
-
-    if (normalizedStatus.includes('archived')) {
-      return 'archived';
-    }
-
+    if (normalizedStatus.includes('published')) return 'published';
+    if (normalizedStatus.includes('paused')) return 'paused';
+    if (normalizedStatus.includes('archived')) return 'archived';
     return 'published';
   }
 
   getStatusLabel(status: string): string {
     const normalizedStatus = status.toLowerCase();
-
-    if (normalizedStatus.includes('published')) {
-      return 'Yayında';
-    }
-
-    if (normalizedStatus.includes('paused')) {
-      return 'Duraklatıldı';
-    }
-
-    if (normalizedStatus.includes('archived')) {
-      return 'Arşivlendi';
-    }
-
+    if (normalizedStatus.includes('published')) return 'Yayında';
+    if (normalizedStatus.includes('paused')) return 'Duraklatıldı';
+    if (normalizedStatus.includes('archived')) return 'Arşivlendi';
     return 'Yayında';
   }
 

@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnDestroy, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core'; // OnInit eklendi
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive, RouterModule, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterModule, Router, NavigationEnd } from '@angular/router'; // NavigationEnd eklendi
+import { filter } from 'rxjs'; // filter eklendi
 import { apiUrl } from '../../shared/api-url';
 
 @Component({
@@ -11,10 +12,11 @@ import { apiUrl } from '../../shared/api-url';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
-export class Navbar implements OnDestroy {
+export class Navbar implements OnInit, OnDestroy {
 
   private http = inject(HttpClient);
-  private router = inject(Router);
+  public router = inject(Router);
+  
   searchQuery = '';
   globalName = 'Kullanıcı';
   showLogoutModal = false;
@@ -25,10 +27,55 @@ export class Navbar implements OnDestroy {
     if (name) {
       this.globalName = name;
     }
-    // initialize navbar appearance based on scroll position after view paints
+  }
+
+  ngOnInit() {
+    // 1. DÜZELTME: Sayfa her değiştiğinde beklemeden Navbar'ı tepe moduna al
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.forceNavbarToTop();
+    });
+
     requestAnimationFrame(() => this.updateNavbarState());
     this._scrollHandler = () => this.updateNavbarState();
     window.addEventListener('scroll', this._scrollHandler, { passive: true });
+  }
+
+  // Navbar sınıflarını anında sıfırlayan yardımcı metod
+  private forceNavbarToTop() {
+    try {
+      const nav = document.querySelector('.app-navbar');
+      if (nav) {
+        nav.classList.add('app-navbar--at-top');
+        nav.classList.remove('app-navbar--scrolled');
+      }
+      document.body.classList.add('navbar--at-top');
+      document.body.classList.remove('navbar--scrolled');
+    } catch (err) {}
+  }
+
+  private updateNavbarState() {
+    try {
+      const nav = document.querySelector('.app-navbar');
+      if (!nav) return;
+      if (window.scrollY && window.scrollY > 8) {
+        nav.classList.remove('app-navbar--at-top');
+        nav.classList.add('app-navbar--scrolled');
+        document.body.classList.remove('navbar--at-top');
+        document.body.classList.add('navbar--scrolled');
+      } else {
+        this.forceNavbarToTop();
+      }
+    } catch (err) {}
+  }
+
+  // Profil altındaki linklerden biri açıksa ana butonun "yanmasını" sağlayacak metod
+  isProfileActive(): boolean {
+    const url = this.router.url;
+    return url.includes('/favorite-my') || 
+           url.includes('/event-my') || 
+           url.includes('/participant-my');
   }
 
   openLogoutModal() {
@@ -61,26 +108,6 @@ export class Navbar implements OnDestroy {
     if (this._scrollHandler) {
       window.removeEventListener('scroll', this._scrollHandler as EventListener);
       this._scrollHandler = undefined;
-    }
-  }
-
-  private updateNavbarState() {
-    try {
-      const nav = document.querySelector('.app-navbar');
-      if (!nav) return;
-      if (window.scrollY && window.scrollY > 8) {
-        nav.classList.remove('app-navbar--at-top');
-        nav.classList.add('app-navbar--scrolled');
-        document.body.classList.remove('navbar--at-top');
-        document.body.classList.add('navbar--scrolled');
-      } else {
-        nav.classList.add('app-navbar--at-top');
-        nav.classList.remove('app-navbar--scrolled');
-        document.body.classList.add('navbar--at-top');
-        document.body.classList.remove('navbar--scrolled');
-      }
-    } catch (err) {
-      // ignore
     }
   }
 

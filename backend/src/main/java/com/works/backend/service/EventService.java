@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+giimport java.util.Locale;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -145,15 +146,27 @@ public class EventService {
                 .map(event -> toEventResponse(event, favoriteEventIds));
     }
 
-    @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page + '-' + #sort + '-' + #root.target.getSessionUserId()")
-    public Page<EventResponseDto> search(String q, int page, String sort) {
+    @Cacheable(cacheNames = "eventSearchCache", key = "#q + '-' + #page + '-' + #sort + '-' + (#status == null ? '' : #status) + '-' + #root.target.getSessionUserId()")
+    public Page<EventResponseDto> search(String q, int page, String sort, String status) {
         Sort.Direction direction =
                 "desc".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(page, 9, Sort.by(direction, "date", "time"));
         Set<Long> favoriteEventIds = getFavoriteEventIds(getSessionUser());
-        return eventRepository.findByTitleContainsOrDescriptionContainsOrLocationContainsOrCategoryContainsAllIgnoreCase(
-                        q, q, q, q, pageable)
+        EventStatus eventStatus = parseEventStatus(status);
+
+        if (eventStatus == null) {
+            return eventRepository.findByTitleContainsOrDescriptionContainsOrLocationContainsOrCategoryContainsAllIgnoreCase(
+                            q, q, q, q, pageable)
+                    .map(event -> toEventResponse(event, favoriteEventIds));
+        }
+
+        return eventRepository.findByStatusAndTitleContainsIgnoreCaseOrStatusAndDescriptionContainsIgnoreCaseOrStatusAndLocationContainsIgnoreCaseOrStatusAndCategoryContainsIgnoreCase(
+                        eventStatus, q,
+                        eventStatus, q,
+                        eventStatus, q,
+                        eventStatus, q,
+                        pageable)
                 .map(event -> toEventResponse(event, favoriteEventIds));
     }
 
@@ -257,6 +270,17 @@ public class EventService {
         }
         return event.getDate().isBefore(today)
                 || (event.getDate().isEqual(today) && event.getTime().isBefore(now));
+    }
+
+    private EventStatus parseEventStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        try {
+            return EventStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private ResponseEntity validateEventDateTime(LocalDate date, LocalTime time) {

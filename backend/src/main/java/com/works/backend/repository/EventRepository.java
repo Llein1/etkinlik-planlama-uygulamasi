@@ -22,6 +22,17 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             String category,
             Pageable pageable
     );
+    Page<Event> findByStatusAndTitleContainsIgnoreCaseOrStatusAndDescriptionContainsIgnoreCaseOrStatusAndLocationContainsIgnoreCaseOrStatusAndCategoryContainsIgnoreCase(
+            EventStatus titleStatus,
+            String title,
+            EventStatus descriptionStatus,
+            String description,
+            EventStatus locationStatus,
+            String location,
+            EventStatus categoryStatus,
+            String category,
+            Pageable pageable
+    );
     List<Event> findByStatusInAndDateBefore(List<EventStatus> statuses, LocalDate date);
     List<Event> findByStatusInAndDateEqualsAndTimeBefore(List<EventStatus> statuses, LocalDate date, LocalTime time);
 }

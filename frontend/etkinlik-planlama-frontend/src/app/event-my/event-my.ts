@@ -18,7 +18,11 @@ export class EventMy {
   eventArray = signal<Event[]>([]);
   pages = signal<number[]>([]);
   activePage = signal<number>(0);
-  loading = signal<boolean>(false);
+  
+  // DEĞİŞİKLİK: loading true başlamalı ve initialLoad eklenmeli
+  loading = signal<boolean>(true);
+  initialLoad = signal<boolean>(true); 
+  
   totalElements = signal<number>(0);
 
   ngOnInit() {
@@ -34,10 +38,12 @@ export class EventMy {
         this.totalElements.set(response.page.totalElements);
         this.pages.set(Array.from({ length: response.page.totalPages }, (_, index) => index));
         this.loading.set(false);
+        this.initialLoad.set(false); // İlk yükleme tamamlandı
       },
       error: (error) => {
         alert('Etkinlikler yüklenirken hata oluştu: ' + (error.error?.message || 'Bilinmeyen hata'));
         this.loading.set(false);
+        this.initialLoad.set(false);
       }
     });
   }
@@ -47,39 +53,20 @@ export class EventMy {
     this.eventArray.set(updated);
   }
 
+  // ... Diğer metodlar (getStatusVariant, getStatusLabel, isArchivedStatus) aynı kalacak
   getStatusVariant(status: string): string {
     const normalizedStatus = status.toLowerCase();
-
-    if (normalizedStatus.includes('published')) {
-      return 'published';
-    }
-
-    if (normalizedStatus.includes('paused')) {
-      return 'paused';
-    }
-
-    if (normalizedStatus.includes('archived')) {
-      return 'archived';
-    }
-
+    if (normalizedStatus.includes('published')) return 'published';
+    if (normalizedStatus.includes('paused')) return 'paused';
+    if (normalizedStatus.includes('archived')) return 'archived';
     return 'published';
   }
 
   getStatusLabel(status: string): string {
     const normalizedStatus = status.toLowerCase();
-
-    if (normalizedStatus.includes('published')) {
-      return 'Yayında';
-    }
-
-    if (normalizedStatus.includes('paused')) {
-      return 'Duraklatıldı';
-    }
-
-    if (normalizedStatus.includes('archived')) {
-      return 'Arşivlendi';
-    }
-
+    if (normalizedStatus.includes('published')) return 'Yayında';
+    if (normalizedStatus.includes('paused')) return 'Duraklatıldı';
+    if (normalizedStatus.includes('archived')) return 'Arşivlendi';
     return 'Yayında';
   }
 

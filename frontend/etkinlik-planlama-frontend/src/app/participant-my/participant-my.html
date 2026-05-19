@@ -43,6 +43,23 @@
   }
 
   @if (!loading() && eventArray().length > 0) {
+
+    @if (pages().length > 1) {
+      <div class="d-flex justify-content-end align-items-center mb-3">
+        <nav aria-label="Sayfalama" class="app-pagination">
+          <ul class="pagination justify-content-end flex-wrap gap-2 mb-0">
+            @for (page of pages(); track page) {
+              <li class="page-item">
+                <a class="page-link" [class.active]="page === activePage()" role="button" (click)="fetchEvents(page)">
+                  {{ page + 1 }}
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      </div>
+    }
+
     <div class="row g-4">
       @for (item of eventArray(); track item.id) {
         <div class="col-12 col-md-6 col-xl-4">
@@ -85,23 +102,5 @@
       }
     </div>
 
-    @if (pages().length > 1) {
-      <nav class="event-my-pagination mt-5" aria-label="Katıldığım etkinlikler sayfalama">
-        <ul class="pagination justify-content-center flex-wrap gap-2 mb-0">
-          @for (page of pages(); track page) {
-            <li class="page-item">
-              <a
-                class="page-link"
-                [class.active]="page === activePage()"
-                role="button"
-                (click)="fetchEvents(page)"
-              >
-                {{ page + 1 }}
-              </a>
-            </li>
-          }
-        </ul>
-      </nav>
-    }
   }
 </section>

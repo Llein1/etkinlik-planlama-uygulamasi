@@ -66,9 +66,10 @@ public class EventRestController {
     public Page<EventResponseDto> search(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "") String q,
-            @RequestParam(defaultValue = "asc") String sort
+            @RequestParam(defaultValue = "asc") String sort,
+            @RequestParam(defaultValue = "") String status
     ) {
-        return eventService.search(q, page, sort);
+        return eventService.search(q, page, sort, status);
     }
 
     @GetMapping("control")

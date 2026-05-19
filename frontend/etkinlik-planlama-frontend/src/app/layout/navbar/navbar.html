@@ -15,9 +15,11 @@
           <a class="nav-link" routerLink="/event-create" routerLinkActive="active" aria-current="page">Etkinlik Oluştur</a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          
+          <a class="nav-link dropdown-toggle" [class.active]="isProfileActive()" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Profil
           </a>
+          
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" routerLink="/favorite-my" routerLinkActive="active">Favorilerim</a></li>
             <li><a class="dropdown-item" routerLink="/event-my" routerLinkActive="active">Oluşturduğum Etkinlikler</a></li>

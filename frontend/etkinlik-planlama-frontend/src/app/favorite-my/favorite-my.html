@@ -18,22 +18,27 @@
 
     <div class="event-my-hero__panel">
       <p class="event-my-hero__panel-label mb-2">Favori sayısı</p>
-      <strong class="event-my-hero__panel-value d-block">{{ totalElements() }}</strong>
+      <strong class="event-my-hero__panel-value d-block">
+        @if (initialLoad()) {
+          <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+        } @else {
+          {{ totalElements() }}
+        }
+      </strong>
       <span class="event-my-hero__panel-note d-block mt-2">
         {{ pages().length }} sayfa · aktif sayfa {{ activePage() + 1 }}
       </span>
     </div>
   </div>
 
-  @if (loading()) {
+  @if (initialLoad() || loading()) {
     <div class="event-my-loading d-flex justify-content-center align-items-center py-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Yükleniyor...</span>
       </div>
     </div>
   }
-
-  @if (!loading() && eventArray().length === 0) {
+  @else if (eventArray().length === 0) {
     <div class="event-my-empty text-center mx-auto">
       <p class="event-my-empty__eyebrow text-uppercase mb-2">Henüz favori yok</p>
       <h2 class="h4 fw-bold mb-3">Favoriye eklediğiniz etkinlik bulunmuyor.</h2>
@@ -41,8 +46,24 @@
       <a routerLink="/events" class="btn event-my-cta px-4">Etkinlikleri Keşfet</a>
     </div>
   }
+  @else {
 
-  @if (!loading() && eventArray().length > 0) {
+    @if (pages().length > 1) {
+      <div class="d-flex justify-content-end align-items-center mb-3">
+        <nav aria-label="Sayfalama" class="app-pagination">
+          <ul class="pagination justify-content-end flex-wrap gap-2 mb-0">
+            @for (page of pages(); track page) {
+              <li class="page-item">
+                <a class="page-link" [class.active]="page === activePage()" role="button" (click)="fetchEvents(page)">
+                  {{ page + 1 }}
+                </a>
+              </li>
+            }
+          </ul>
+        </nav>
+      </div>
+    }
+
     <div class="row g-4">
       @for (item of eventArray(); track item.id) {
         <div class="col-12 col-md-6 col-xl-4">
@@ -85,23 +106,6 @@
       }
     </div>
 
-    @if (pages().length > 1) {
-      <nav class="event-my-pagination mt-5" aria-label="Favorilerim sayfalama">
-        <ul class="pagination justify-content-center flex-wrap gap-2 mb-0">
-          @for (page of pages(); track page) {
-            <li class="page-item">
-              <a
-                class="page-link"
-                [class.active]="page === activePage()"
-                role="button"
-                (click)="fetchEvents(page)"
-              >
-                {{ page + 1 }}
-              </a>
-            </li>
-          }
-        </ul>
-      </nav>
-    }
+    
   }
 </section>

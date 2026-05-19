@@ -2,3 +2,11 @@
     width: 160px;       
     height: auto;       
 }
+
+.footer-brand img {
+    transition: transform 0.3s ease-in-out !important;
+}
+
+.footer-brand:hover img {
+    transform: scale(1.125) !important;
+}
