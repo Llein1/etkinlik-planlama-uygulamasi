@@ -1,22 +1,30 @@
-# Etkinlik Planlama Uygulaması 📅
+<div align="center">
+  <h1>📅 Etkinlik Planlama Uygulaması</h1>
+  <p><b>Sabancı Gençlik Seferberliği / Uludağ Üniversitesi / AKSigorta İleri Düzey Java Programlama Eğitimi Bitirme Projesi</b></p>
+  <img src="images/AnaSayfa.gif" width="700" alt="Ana Sayfa Görünümü">
+</div>
 
-Sabancı Gençlik Seferberliği / Uludağ Üniversitesi / AKSigorta İleri Düzey Java Programlama Eğitimi Bitirme Projesi.
-
-## 1. Proje Açıklaması ve Amacı 🎯
+## 🎯 1. Proje Açıklaması ve Amacı 
 
 Bu proje, kullanıcıların etkinlik oluşturabildiği, etkinlik yayınlayabildiği, diğer kullanıcıların etkinliklerini görüntüleyip katılım sağlayabildiği ve kendi etkinliklerini detaylı bir şekilde yönetebildiği kapsamlı bir web uygulamasıdır. 
 
 Amacımız, kullanıcı dostu bir arayüz ile etkinlik yönetimini merkezileştirmek, insanların ilgi alanlarına uygun etkinlikleri keşfetmesini ve yeni organizasyonlar oluşturmasını kolaylaştırmaktır.
 
-![Ana Sayfa](images/AnaSayfa.PNG)
-
-## 2. Özellikler ✨
+## ✨ 2. Özellikler 
 
 ### 👤 Kullanıcı İşlemleri
 * **Kayıt ve Giriş:** Kullanıcılar Ad Soyad, Email ve Şifre (minimum uzunluk kuralları ile) ile sisteme güvenli şekilde kayıt olup giriş yapabilirler.
 
-![Kaydol](images/Kaydol.PNG)
-![Giriş Yap](images/GirisYap.PNG)
+<table>
+  <tr>
+    <td align="center"><b>Giriş Ekranı</b></td>
+    <td align="center"><b>Kayıt Ekranı</b></td>
+  </tr>
+  <tr>
+    <td><img src="images/Giris.PNG" width="400" alt="Giriş"></td>
+    <td><img src="images/Kaydol.PNG" width="400" alt="Kaydol"></td>
+  </tr>
+</table>
 
 * **Oturum Yönetimi:** Kullanıcı giriş işlemleri `Http Session` ile korunmakta olup, güvenli çıkış yapma özelliği bulunmaktadır.
 
@@ -25,38 +33,38 @@ Amacımız, kullanıcı dostu bir arayüz ile etkinlik yönetimini merkezileşti
 ### 📅 Etkinlik İşlemleri
 Kullanıcılar yeni bir etkinlik planlayabilir ve gerekli detaylarla birlikte sisteme ekleyebilirler.
 
-![Etkinlik Oluştur](images/EtkinlikOlustur.PNG)
+<img src="images/EtkinlikOlustur.PNG" width="600" alt="Etkinlik Oluştur">
 
 * **Etkinlik Listeleme & Keşfetme:** Sistemdeki tüm (yayındaki) etkinlikler sayfalama (pagination) kullanılarak listelenir.
 
-![Sayfalama Görünümü](images/AnaSayfa2.PNG)
+<img src="images/AnaSayfa2.PNG" width="600" alt="Sayfalama Görünümü">
 
 * **Etkinlik Arama:** Kullanıcılar ilgilendikleri etkinlik türlerine veya isimlerine göre arama yapabilir.
 
-![Etkinlik Arama](images/Arama.PNG)
+<img src="images/Arama.PNG" width="600" alt="Etkinlik Arama">
 
 * **Etkinlik Detayları:** Etkinliklerin içeriği, yeri, zamanı ve katılımcı durumları incelenebilir.
 
-![Etkinlik Detay](images/EtkinlikDetay.PNG)
+<img src="images/EtkinlikDetay.PNG" width="600" alt="Etkinlik Detay">
 
 * **Favoriler:** Kullanıcılar beğendikleri etkinlikleri favorilerine ekleyebilir.
 
-![Favorilerim](images/Favorilerim.PNG)
+<img src="images/Favorite.gif" width="600" alt="Favori Ekleme">
 
 * **Etkinlik Sahibi Yetkileri:** Bir etkinliği oluşturan kullanıcı etkinliği düzenleyebilir, silebilir, yayınlayabilir, yayını durdurabilir veya süresi geçenleri arşivleyebilir.
 * **Etkinlik Durumları:** `Yayında`, `Yayın Durduruldu` ve `Arşivlendi` statüleri ile aktif yönetim sağlanır.
 
-![Etkinlik Düzenle](images/EtkinlikDuzenle.PNG)
+<img src="images/EtkinlikDuzenle.PNG" width="600" alt="Etkinlik Düzenle">
 
 ### 👥 Katılım ve Takip
 * **Etkinliğe Katılma:** Giriş yapan her kullanıcı mevcut etkinliklere katılım sağlayabilir.
 * **Katıldıklarım:** Kullanıcılar geçmişte katıldıkları veya katılacakları etkinlikleri sistem üzerinden takip edebilir.
 
-![Katıldıklarım](images/Katildiklarim.PNG)
+<img src="images/Katildiklarim.PNG" width="600" alt="Katıldıklarım">
 
 * **Katılımcı Listesi:** Etkinlik sahibi, kendi organizasyonuna kimlerin katıldığını listeleyebilir.
 
-![Katılımcılar](images/Katilimcilar.PNG)
+<img src="images/Katilimcilar.PNG" width="600" alt="Katılımcılar">
 
 ---
 
