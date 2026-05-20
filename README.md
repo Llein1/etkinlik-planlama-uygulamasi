@@ -1,7 +1,7 @@
 <div align="center">
   <h1>📅 Etkinlik Planlama Uygulaması</h1>
   <p><b>Sabancı Gençlik Seferberliği / Uludağ Üniversitesi / AKSigorta İleri Düzey Java Programlama Eğitimi Bitirme Projesi</b></p>
-  <img src="images/AnaSayfa.gif" width="700" alt="Ana Sayfa Görünümü">
+    <img src="images/AnaSayfa.gif" width="700" alt="Ana Sayfa Görünümü">
 </div>
 
 ## 🎯 1. Proje Açıklaması ve Amacı 
@@ -15,56 +15,76 @@ Amacımız, kullanıcı dostu bir arayüz ile etkinlik yönetimini merkezileşti
 ### 👤 Kullanıcı İşlemleri
 * **Kayıt ve Giriş:** Kullanıcılar Ad Soyad, Email ve Şifre (minimum uzunluk kuralları ile) ile sisteme güvenli şekilde kayıt olup giriş yapabilirler.
 
-<table>
-  <tr>
-    <td align="center"><b>Giriş Ekranı</b></td>
-    <td align="center"><b>Kayıt Ekranı</b></td>
-  </tr>
-  <tr>
-    <td><img src="images/Giris.PNG" width="400" alt="Giriş"></td>
-    <td><img src="images/Kaydol.PNG" width="400" alt="Kaydol"></td>
-  </tr>
-</table>
+<p align="center">
+    <table>
+    <tr>
+        <td align="center"><b>Giriş Ekranı</b></td>
+        <td align="center"><b>Kayıt Ekranı</b></td>
+    </tr>
+    <tr>
+        <td><img src="images/GirisYap.PNG" width="400" alt="Giriş"></td>
+        <td><img src="images/Kaydol.PNG" width="400" alt="Kaydol"></td>
+    </tr>
+    </table>
+</p>
 
 * **Oturum Yönetimi:** Kullanıcı giriş işlemleri `Http Session` ile korunmakta olup, güvenli çıkış yapma özelliği bulunmaktadır.
 
-![Çıkış Yap](images/CikisYap.PNG)
+<p align="center">
+    <img src="images/CikisYap.PNG" width="600" alt="Çıkış Yap">
+</p>
 
 ### 📅 Etkinlik İşlemleri
 Kullanıcılar yeni bir etkinlik planlayabilir ve gerekli detaylarla birlikte sisteme ekleyebilirler.
 
-<img src="images/EtkinlikOlustur.PNG" width="600" alt="Etkinlik Oluştur">
+<p align="center">
+    <img src="images/EtkinlikOlustur.PNG" width="600" alt="Etkinlik Oluştur">
+</p>
 
 * **Etkinlik Listeleme & Keşfetme:** Sistemdeki tüm (yayındaki) etkinlikler sayfalama (pagination) kullanılarak listelenir.
 
-<img src="images/AnaSayfa2.PNG" width="600" alt="Sayfalama Görünümü">
+<p align="center">
+    <img src="images/AnaSayfa2.PNG" width="600" alt="Sayfalama Görünümü">
+</p>
 
 * **Etkinlik Arama:** Kullanıcılar ilgilendikleri etkinlik türlerine veya isimlerine göre arama yapabilir.
 
-<img src="images/Arama.PNG" width="600" alt="Etkinlik Arama">
+<p align="center">
+    <img src="images/Arama.PNG" width="600" alt="Etkinlik Arama">
+</p>
 
 * **Etkinlik Detayları:** Etkinliklerin içeriği, yeri, zamanı ve katılımcı durumları incelenebilir.
 
-<img src="images/EtkinlikDetay.PNG" width="600" alt="Etkinlik Detay">
+<p align="center">
+    <img src="images/EtkinlikDetay.PNG" width="600" alt="Etkinlik Detay">
+</p>
 
 * **Favoriler:** Kullanıcılar beğendikleri etkinlikleri favorilerine ekleyebilir.
 
-<img src="images/Favorite.gif" width="600" alt="Favori Ekleme">
+<p align="center">
+    <img src="images/Favorite.gif" width="600" alt="Favori Ekleme">
+</p>
 
 * **Etkinlik Sahibi Yetkileri:** Bir etkinliği oluşturan kullanıcı etkinliği düzenleyebilir, silebilir, yayınlayabilir, yayını durdurabilir veya süresi geçenleri arşivleyebilir.
 * **Etkinlik Durumları:** `Yayında`, `Yayın Durduruldu` ve `Arşivlendi` statüleri ile aktif yönetim sağlanır.
 
-<img src="images/EtkinlikDuzenle.PNG" width="600" alt="Etkinlik Düzenle">
+<p align="center">
+    <img src="images/EtkinlikDuzenle.PNG" width="600" alt="Etkinlik Düzenle">
+</p>
 
 ### 👥 Katılım ve Takip
 * **Etkinliğe Katılma:** Giriş yapan her kullanıcı mevcut etkinliklere katılım sağlayabilir.
 * **Katıldıklarım:** Kullanıcılar geçmişte katıldıkları veya katılacakları etkinlikleri sistem üzerinden takip edebilir.
 
-<img src="images/Katildiklarim.PNG" width="600" alt="Katıldıklarım">
+<p align="center">
+    <img src="images/Katildiklarim.PNG" width="600" alt="Katıldıklarım">
+</p>
 
 * **Katılımcı Listesi:** Etkinlik sahibi, kendi organizasyonuna kimlerin katıldığını listeleyebilir.
 
-<img src="images/Katilimcilar.PNG" width="600" alt="Katılımcılar">
+<p align="center">
+    <img src="images/Katilimcilar.PNG" width="600" alt="Katılımcılar">
+</p>
 
 ---
 
