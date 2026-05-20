@@ -31,45 +31,45 @@ Amacımız, kullanıcı dostu bir arayüz ile etkinlik yönetimini merkezileşti
 * **Oturum Yönetimi:** Kullanıcı giriş işlemleri `Http Session` ile korunmakta olup, güvenli çıkış yapma özelliği bulunmaktadır.
 
 <p align="center">
-    <img src="images/CikisYap.PNG" width="600" alt="Çıkış Yap">
+    <img src="images/CikisYap.PNG" width="700" alt="Çıkış Yap">
 </p>
 
 ### 📅 Etkinlik İşlemleri
 Kullanıcılar yeni bir etkinlik planlayabilir ve gerekli detaylarla birlikte sisteme ekleyebilirler.
 
 <p align="center">
-    <img src="images/EtkinlikOlustur.PNG" width="600" alt="Etkinlik Oluştur">
+    <img src="images/EtkinlikOlustur.PNG" width="700" alt="Etkinlik Oluştur">
 </p>
 
 * **Etkinlik Listeleme & Keşfetme:** Sistemdeki tüm (yayındaki) etkinlikler sayfalama (pagination) kullanılarak listelenir.
 
 <p align="center">
-    <img src="images/AnaSayfa2.PNG" width="600" alt="Sayfalama Görünümü">
+    <img src="images/AnaSayfa2.PNG" width="700" alt="Sayfalama Görünümü">
 </p>
 
 * **Etkinlik Arama:** Kullanıcılar ilgilendikleri etkinlik türlerine veya isimlerine göre arama yapabilir.
 
 <p align="center">
-    <img src="images/Arama.PNG" width="600" alt="Etkinlik Arama">
+    <img src="images/Arama.PNG" width="700" alt="Etkinlik Arama">
 </p>
 
 * **Etkinlik Detayları:** Etkinliklerin içeriği, yeri, zamanı ve katılımcı durumları incelenebilir.
 
 <p align="center">
-    <img src="images/EtkinlikDetay.PNG" width="600" alt="Etkinlik Detay">
+    <img src="images/EtkinlikDetay.PNG" width="700" alt="Etkinlik Detay">
 </p>
 
 * **Favoriler:** Kullanıcılar beğendikleri etkinlikleri favorilerine ekleyebilir.
 
 <p align="center">
-    <img src="images/Favorite.gif" width="600" alt="Favori Ekleme">
+    <img src="images/Favorite.gif" width="700" alt="Favori Ekleme">
 </p>
 
 * **Etkinlik Sahibi Yetkileri:** Bir etkinliği oluşturan kullanıcı etkinliği düzenleyebilir, silebilir, yayınlayabilir, yayını durdurabilir veya süresi geçenleri arşivleyebilir.
 * **Etkinlik Durumları:** `Yayında`, `Yayın Durduruldu` ve `Arşivlendi` statüleri ile aktif yönetim sağlanır.
 
 <p align="center">
-    <img src="images/EtkinlikDuzenle.PNG" width="600" alt="Etkinlik Düzenle">
+    <img src="images/EtkinlikDuzenle.PNG" width="700" alt="Etkinlik Düzenle">
 </p>
 
 ### 👥 Katılım ve Takip
@@ -77,13 +77,13 @@ Kullanıcılar yeni bir etkinlik planlayabilir ve gerekli detaylarla birlikte si
 * **Katıldıklarım:** Kullanıcılar geçmişte katıldıkları veya katılacakları etkinlikleri sistem üzerinden takip edebilir.
 
 <p align="center">
-    <img src="images/Katildiklarim.PNG" width="600" alt="Katıldıklarım">
+    <img src="images/Katildiklarim.PNG" width="700" alt="Katıldıklarım">
 </p>
 
 * **Katılımcı Listesi:** Etkinlik sahibi, kendi organizasyonuna kimlerin katıldığını listeleyebilir.
 
 <p align="center">
-    <img src="images/Katilimcilar.PNG" width="600" alt="Katılımcılar">
+    <img src="images/Katilimcilar.PNG" width="700" alt="Katılımcılar">
 </p>
 
 ---
